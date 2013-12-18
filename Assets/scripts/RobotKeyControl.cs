@@ -2,24 +2,26 @@
 using System.Collections;
 
 public class RobotKeyControl : MonoBehaviour {
-
-	// Use this for initialization
-	void Start () {
 	
-	}
-	
-	public float WheelPower { get; private set; }
+	public float ForwardForce { get; private set; }
+	public float TurningForce { get; private set; }
 	
 	// Update is called once per frame
 	void Update () {
-		const float maxWheelPower = 10000f;
 		if (Input.GetKey(KeyCode.UpArrow)) {
-			WheelPower = maxWheelPower;
+			ForwardForce = 1.0f;
 		} else if (Input.GetKey(KeyCode.DownArrow)) {
-			WheelPower = -maxWheelPower;
+			ForwardForce = -1.0f;
 		} else {
-			WheelPower = 0.0f;
+			ForwardForce = 0.0f;
 		}
-		
+
+		if (Input.GetKey(KeyCode.LeftArrow)) {
+			TurningForce = -1.0f;
+		} else if (Input.GetKey(KeyCode.RightArrow)) {
+			TurningForce = 1.0f;
+		} else {
+			TurningForce = 0.0f;
+		}
 	}
 }
