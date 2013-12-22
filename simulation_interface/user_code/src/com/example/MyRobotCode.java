@@ -1,6 +1,6 @@
 package com.example;
 
-import com.leighpauls.wpiabstraction.IterativeRobotInterface;
+import com.leighpauls.wpi_abstraction.IterativeRobotInterface;
 
 /**
  * Write your robot control code here

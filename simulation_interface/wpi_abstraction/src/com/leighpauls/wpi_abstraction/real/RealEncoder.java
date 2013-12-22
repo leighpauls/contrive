@@ -1,6 +1,6 @@
-package com.leighpauls.wpiabstraction.real;
+package com.leighpauls.wpi_abstraction.real;
 
-import com.leighpauls.wpiabstraction.abstractions.AbstractEncoder;
+import com.leighpauls.wpi_abstraction.abstractions.AbstractEncoder;
 import edu.wpi.first.wpilibj.CounterBase;
 import edu.wpi.first.wpilibj.Encoder;
 

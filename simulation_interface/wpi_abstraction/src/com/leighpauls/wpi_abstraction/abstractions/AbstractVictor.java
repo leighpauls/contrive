@@ -1,8 +1,8 @@
-package com.leighpauls.wpiabstraction.abstractions;
+package com.leighpauls.wpi_abstraction.abstractions;
 
-import com.leighpauls.wpiabstraction.InjectionController;
-import com.leighpauls.wpiabstraction.emulation.EmulationVictor;
-import com.leighpauls.wpiabstraction.real.RealVictor;
+import com.leighpauls.wpi_abstraction.InjectionController;
+import com.leighpauls.wpi_abstraction.emulation.EmulationVictor;
+import com.leighpauls.wpi_abstraction.real.RealVictor;
 import edu.wpi.first.wpilibj.SensorBase;
 
 /**

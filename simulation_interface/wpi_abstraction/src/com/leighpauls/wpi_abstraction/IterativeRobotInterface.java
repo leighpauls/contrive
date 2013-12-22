@@ -1,4 +1,4 @@
-package com.leighpauls.wpiabstraction;
+package com.leighpauls.wpi_abstraction;
 
 /**
  * Interface to build your robot control code on top of

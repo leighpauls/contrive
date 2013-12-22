@@ -1,7 +1,7 @@
 package com.leighpauls;
 
 import com.example.MyRobotCode;
-import com.leighpauls.wpiabstraction.IterativeRobotInterface;
+import com.leighpauls.wpi_abstraction.IterativeRobotInterface;
 
 /**
  * The main file that gets run during a simulation
