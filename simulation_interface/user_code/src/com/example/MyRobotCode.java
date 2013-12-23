@@ -1,6 +1,7 @@
 package com.example;
 
 import com.leighpauls.unwpi.IterativeRobotInterface;
+import com.leighpauls.unwpi.emulations.encoder.AbstractEncoder;
 import com.leighpauls.unwpi.emulations.victor.AbstractVictor;
 
 /**
@@ -11,9 +12,16 @@ public class MyRobotCode implements IterativeRobotInterface {
     private final AbstractVictor mLeftDriveVictor;
     private final AbstractVictor mRightDriveVictor;
 
+    private final AbstractEncoder mLeftDriveEncoder;
+    private final AbstractEncoder mRightDriveEncoder;
+
+
     public MyRobotCode() {
         mLeftDriveVictor = AbstractVictor.getInstance(2);
         mRightDriveVictor = AbstractVictor.getInstance(2);
+
+        mLeftDriveEncoder = AbstractEncoder.getInstance(1, 2);
+        mRightDriveEncoder = AbstractEncoder.getInstance(3, 4);
     }
 
     public void robotInit() {}
@@ -26,8 +34,8 @@ public class MyRobotCode implements IterativeRobotInterface {
 
     public void autonomousInit() {}
     public void autonomousPeriodic() {
-        mLeftDriveVictor.set(1.0);
-        mRightDriveVictor.set(-1.0);
+        mLeftDriveVictor.set(-mLeftDriveEncoder.getDistance());
+        mRightDriveVictor.set(mRightDriveEncoder.getDistance());
     }
 
     public void teleopInit() {}

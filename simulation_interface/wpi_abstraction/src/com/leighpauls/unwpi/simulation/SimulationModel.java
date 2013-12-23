@@ -14,12 +14,18 @@ import java.util.HashMap;
  */
 public class SimulationModel {
     private static SimulationModel sInstance;
-
     public static SimulationModel getInstance() {
         if (sInstance == null) {
             sInstance = new SimulationModel();
         }
         return sInstance;
+    }
+
+    public static SimulationServer connectToSimulationServer() {
+        // force an instance to be made
+        SimulationModel model = getInstance();
+        // return it's server connection
+        return model.mSimulationServer;
     }
 
 
@@ -53,10 +59,6 @@ public class SimulationModel {
 
         addEncoder(1, 1, 1, 2);
         addEncoder(1, 3, 1, 4);
-    }
-
-    public void handleSensorCommands() {
-        mSimulationServer.handleSensorCommands();
     }
 
     private void addVictor(int slot, int channel) {

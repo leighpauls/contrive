@@ -3,6 +3,7 @@ package com.leighpauls;
 import com.example.MyRobotCode;
 import com.leighpauls.unwpi.IterativeRobotInterface;
 import com.leighpauls.unwpi.simulation.SimulationModel;
+import com.leighpauls.unwpi.simulation.SimulationServer;
 
 /**
  * The main file that gets run during a simulation
@@ -17,16 +18,16 @@ public class SimulationRuntime {
     public static void main(String[] args) {
         System.out.println("Hello World!");
 
-        SimulationModel model = SimulationModel.getInstance();
+        SimulationServer server = SimulationModel.connectToSimulationServer();
         IterativeRobotInterface robot = new MyRobotCode();
 
-        model.handleSensorCommands();
+        server.handleSensorCommands();
         robot.robotInit();
         robot.disabledInit();
-        model.handleSensorCommands();
+        server.handleSensorCommands();
         for (int i = 0; i < DISABLED_CYCLES; ++i) {
             robot.disabledPeriodic();
-            model.handleSensorCommands();
+            server.handleSensorCommands();
             try {
                 Thread.sleep(CYCLE_TIME_MS);
             } catch (InterruptedException e) {
@@ -35,10 +36,10 @@ public class SimulationRuntime {
         }
 
         robot.autonomousInit();
-        model.handleSensorCommands();
+        server.handleSensorCommands();
         for (int i = 0; i < AUTON_CYCLES; ++i) {
             robot.autonomousPeriodic();
-            model.handleSensorCommands();
+            server.handleSensorCommands();
             try {
                 Thread.sleep(CYCLE_TIME_MS);
             } catch (InterruptedException e) {
