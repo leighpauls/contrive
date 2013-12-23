@@ -1,15 +1,35 @@
-package com.leighpauls.wpi_abstraction.abstractions;
+package com.leighpauls.unwpi.emulations.encoder;
 
-import com.leighpauls.wpi_abstraction.InjectionController;
-import com.leighpauls.wpi_abstraction.emulation.EmulationEncoder;
-import com.leighpauls.wpi_abstraction.real.RealEncoder;
+import com.leighpauls.unwpi.InjectionController;
+import com.leighpauls.unwpi.simulation.SimulationModel;
 import edu.wpi.first.wpilibj.CounterBase;
 import edu.wpi.first.wpilibj.SensorBase;
 
 /**
- * Absraction layer for {@link edu.wpi.first.wpilibj.Encoder}
+ * Abstraction layer for {@link edu.wpi.first.wpilibj.Encoder}
  */
 public abstract class AbstractEncoder {
+    public static AbstractEncoder getInstance(
+            int aSlot,
+            int aChannel,
+            int bSlot,
+            int bChannel,
+            boolean reverseDirection,
+            CounterBase.EncodingType encodingType) {
+        if (InjectionController.isEmulation()) {
+            return SimulationModel.getInstance().getEncoder(
+                    aSlot,
+                    aChannel,
+                    bSlot,
+                    bChannel,
+                    reverseDirection,
+                    encodingType);
+        } else {
+            return new RealEncoder(aSlot, aChannel, bSlot, bChannel, reverseDirection, encodingType);
+        }
+
+    }
+
     public static AbstractEncoder getInstance(
             int aSlot,
             int aChannel,
@@ -29,22 +49,6 @@ public abstract class AbstractEncoder {
         return getInstance(aSlot, aChannel, bSlot, bChannel, false);
     }
 
-    public static AbstractEncoder getInstance(
-            int aSlot,
-            int aChannel,
-            int bSlot,
-            int bChannel,
-            boolean reverseDirection,
-            CounterBase.EncodingType encodingType) {
-        if (InjectionController.isEmulation()) {
-            return new EmulationEncoder(aSlot, aChannel, bSlot, bChannel, reverseDirection, encodingType);
-        } else {
-            return new RealEncoder(aSlot, aChannel, bSlot, bChannel, reverseDirection, encodingType);
-        }
-
-    }
-
-
     public static AbstractEncoder getInstance(int aChannel, int bChannel, boolean reverseDirection) {
         return getInstance(
                 SensorBase.getDefaultDigitalModule(),
@@ -62,16 +66,12 @@ public abstract class AbstractEncoder {
 
 
     public abstract void start();
-    public abstract int getRaw();
-    public abstract int get();
+    public abstract void stop();
     public abstract void reset();
-    public abstract double getPeriod();
-    public abstract void setMaxPeriod(double maxPeriod);
     public abstract boolean getStopped();
     public abstract boolean getDirection();
     public abstract double getDistance();
     public abstract double getRate();
-    public abstract void setMinRate(double minRate);
     public abstract void setDistancePerPulse(double distancePerPulse);
     public abstract void setReverseDirection(boolean reverseDirection);
 

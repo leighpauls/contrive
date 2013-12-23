@@ -1,6 +1,5 @@
-package com.leighpauls.wpi_abstraction.real;
+package com.leighpauls.unwpi.emulations.encoder;
 
-import com.leighpauls.wpi_abstraction.abstractions.AbstractEncoder;
 import edu.wpi.first.wpilibj.CounterBase;
 import edu.wpi.first.wpilibj.Encoder;
 
@@ -43,26 +42,13 @@ public class RealEncoder extends AbstractEncoder {
         mEncoder.start();
     }
 
-    public int getRaw() {
-        return mEncoder.getRaw();
-    }
-
-    public int get() {
-        return mEncoder.get();
+    public void stop() {
+        mEncoder.stop();
     }
 
     public void reset() {
         mEncoder.reset();
     }
-
-    public double getPeriod() {
-        return mEncoder.getPeriod();
-    }
-
-    public void setMaxPeriod(double maxPeriod) {
-        mEncoder.setMaxPeriod(maxPeriod);
-    }
-
     public boolean getStopped() {
         return mEncoder.getStopped();
     }
@@ -77,10 +63,6 @@ public class RealEncoder extends AbstractEncoder {
 
     public double getRate() {
         return mEncoder.getRate();
-    }
-
-    public void setMinRate(double minRate) {
-        mEncoder.setMinRate(minRate);
     }
 
     public void setDistancePerPulse(double distancePerPulse) {

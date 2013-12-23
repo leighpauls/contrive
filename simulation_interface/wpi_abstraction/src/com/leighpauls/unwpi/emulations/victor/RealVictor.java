@@ -1,6 +1,5 @@
-package com.leighpauls.wpi_abstraction.real;
+package com.leighpauls.unwpi.emulations.victor;
 
-import com.leighpauls.wpi_abstraction.abstractions.AbstractVictor;
 import edu.wpi.first.wpilibj.Victor;
 
 /**

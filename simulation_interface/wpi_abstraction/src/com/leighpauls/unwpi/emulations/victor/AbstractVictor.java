@@ -1,8 +1,7 @@
-package com.leighpauls.wpi_abstraction.abstractions;
+package com.leighpauls.unwpi.emulations.victor;
 
-import com.leighpauls.wpi_abstraction.InjectionController;
-import com.leighpauls.wpi_abstraction.emulation.EmulationVictor;
-import com.leighpauls.wpi_abstraction.real.RealVictor;
+import com.leighpauls.unwpi.InjectionController;
+import com.leighpauls.unwpi.simulation.SimulationModel;
 import edu.wpi.first.wpilibj.SensorBase;
 
 /**
@@ -14,12 +13,11 @@ public abstract class AbstractVictor {
     }
     public static AbstractVictor getInstance(int slot, int channel) {
         if (InjectionController.isEmulation()) {
-            return new EmulationVictor(slot, channel);
+            return SimulationModel.getInstance().getVictor(slot, channel);
         } else {
             return new RealVictor(slot, channel);
         }
     }
-
 
     abstract public void set(double power);
     abstract public double get();

@@ -1,4 +1,4 @@
-package com.leighpauls.wpi_abstraction;
+package com.leighpauls.unwpi;
 
 /**
  * Master switch for controlling a real robot or a simulation
