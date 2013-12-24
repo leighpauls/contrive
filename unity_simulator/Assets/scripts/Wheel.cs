@@ -2,29 +2,72 @@
 using System.Collections;
 
 public class Wheel : MonoBehaviour {
+	const float uDynamic = 0.95f;
+	const float uStatic = 1.95f;
 
-	/**
-	 * Set torque in N.m
-	 */
-	public void SetTorque(float torque) {
-		WheelCollider wheelCollider = (WheelCollider) this.collider;
-		wheelCollider.motorTorque = torque;
+	public bool HasForwardSlip {get; set;}
+
+	private float NormalForce {
+		get {
+			WheelCollider wc = (WheelCollider) this.collider;
+			WheelHit hit;
+			if (wc.GetGroundHit(out hit)) {
+				return hit.force;
+			}
+			return 0f;
+		}
 	}
 
-	/**
-	 * Rotation speed in rps
-	 */
-	public float Speed {
-		get { return ((WheelCollider) this.collider).rpm / 60f;	}
+	const float zeroSpeedThreshold = 0.001f;
+
+	private float SidewaysVelocity {
+		get {
+			return Vector3.RotateTowards(
+				Vector3.Project(rigidbody.velocity, transform.right),
+				Vector3.right,
+				Mathf.PI*2,
+				0f).x;
+		}
 	}
 
-	public float Position { get; private set; }
-
-	void Start() {
-		Position = 0f;
+	private bool HasSidewaysVelocity {
+		get {
+			return Mathf.Abs(SidewaysVelocity) > zeroSpeedThreshold;
+		}
 	}
 
+	public float MaxFrictionForce {
+		get {
+			if (Slipping) {
+				return uDynamic * NormalForce;
+			}
+			return uStatic * NormalForce;
+		}
+	}
+
+	public float ForwardForce {get; set;}
+	public float ForwardSlipSpeed {get; set;}
+
+	private bool Slipping {
+		get {
+			return HasForwardSlip || HasSidewaysVelocity;
+		}
+	}
+
+	const float zeroForceThreshold = 0.001f;
+	
 	void Update() {
-		Position += Speed * Time.deltaTime;
+		if (MaxFrictionForce < zeroForceThreshold) {
+			return;
+		}
+		if (!Slipping) {
+			Debug.Log("Stick");
+			// rigidbody.velocity -= Vector3.Project(rigidbody.velocity, transform.right);
+			rigidbody.AddRelativeForce(Vector3.forward * ForwardForce);
+			return;
+		}
+		Debug.Log("Slip");
+		Vector3 direction = Vector3.forward * ForwardSlipSpeed;// + Vector3.right * SidewaysVelocity;
+		rigidbody.AddRelativeForce(direction.normalized * MaxFrictionForce);
 	}
 }
