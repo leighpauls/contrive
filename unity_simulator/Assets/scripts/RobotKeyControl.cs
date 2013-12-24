@@ -17,37 +17,19 @@ public class RobotKeyControl : MonoBehaviour {
 		float wheelSpeed = 0f;
 		float netMaxForce = 0f;
 		foreach (var wheel in wheels) {
-			// get the wheel's speed in the plane of the wheel
-			wheelSpeed += Vector3.RotateTowards(
-				Vector3.Project(wheel.rigidbody.velocity, wheel.transform.forward), 
-				Vector3.forward,
-				Mathf.PI,
-				0f).z / wheels.Length;
+			// get the wheel's forward speed
+			Vector3 forwardDir = wheel.transform.rotation * Vector3.forward;
+			float forwardSpeed = Vector3.Dot(wheel.rigidbody.velocity, forwardDir);
+			wheelSpeed += forwardSpeed / wheels.Length;
 			netMaxForce += wheel.MaxFrictionForce;
 		}
 
-		Debug.Log("Wheel Speed: " + wheelSpeed + " My Speed: "
-		          + Vector3.RotateTowards(
-						Vector3.Project(rigidbody.velocity, transform.right),
-						Vector3.forward,
-						Mathf.PI,
-						0f).z);
-		Debug.Log("Max force: " + netMaxForce);
 
-		float forceInput = stallForce * (voltage - wheelSpeed / freeSpinSpeed);
+		float staticForceInput = stallForce * (voltage - wheelSpeed / freeSpinSpeed);
+		float slipSpeed = Mathf.Sign(staticForceInput) * freeSpinSpeed * (stallForce - netMaxForce) / stallForce;
 
-		if (Mathf.Abs(forceInput) > netMaxForce) {
-			foreach (var wheel in wheels) {
-				wheel.HasForwardSlip = true;
-				wheel.ForwardSlipSpeed = -Mathf.Sign(wheelSpeed) * freeSpinSpeed * wheel.MaxFrictionForce / stallForce;
-				wheel.ForwardForce = -Mathf.Sign(wheelSpeed) * wheel.MaxFrictionForce;
-			}
-		} else {
-			foreach (var wheel in wheels) {
-				wheel.ForwardSlipSpeed = 0f;
-				wheel.ForwardForce = wheel.MaxFrictionForce / netMaxForce * forceInput;
-				wheel.HasForwardSlip = false;
-			}
+		foreach (var wheel in wheels) {
+			wheel.ApplyChainForce(staticForceInput, netMaxForce, slipSpeed);
 		}
 	}
 
