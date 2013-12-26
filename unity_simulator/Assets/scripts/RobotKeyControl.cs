@@ -24,10 +24,8 @@ public class RobotKeyControl : MonoBehaviour {
 			netMaxForce += wheel.MaxFrictionForce;
 		}
 
-
 		float staticForceInput = stallForce * (voltage - wheelSpeed / freeSpinSpeed);
 		float slipSpeed = Mathf.Sign(staticForceInput) * freeSpinSpeed * (stallForce - netMaxForce) / stallForce;
-
 		foreach (var wheel in wheels) {
 			wheel.ApplyChainForce(staticForceInput, netMaxForce, slipSpeed);
 		}
@@ -35,20 +33,10 @@ public class RobotKeyControl : MonoBehaviour {
 
 	// Update is called once per frame
 	void Update () {
-		float y = 0f;
-		float x = 0f;
-		if (Input.GetKey(KeyCode.UpArrow)) {
-			y = 1.0f;
-		} else if (Input.GetKey(KeyCode.DownArrow)) {
-			y = -1.0f;
-		}
-		if (Input.GetKey(KeyCode.LeftArrow)) {
-			x = -1.0f;
-		} else if (Input.GetKey(KeyCode.RightArrow)) {
-			x = 1.0f;
-		}
-		float left = Mathf.Max(-1.0f, Mathf.Min(1.0f, y + x));
-		float right = Mathf.Max(-1.0f, Mathf.Min(1.0f, y - x));
+		float y = Input.GetAxis("Vertical");
+		float x = Input.GetAxis("Horizontal");
+		float left = Mathf.Clamp(y + x, -1f, 1f);
+		float right = Mathf.Clamp(y - x, -1f, 1f);
 		applyVoltageToWheels(left, leftWheels);
 		applyVoltageToWheels(right, rightWheels);
 	}

@@ -32,7 +32,7 @@ public class Wheel : MonoBehaviour {
 			// not touching the ground
 			forwardForce = 0f;
 			sidewaysForce = 0f;
-			slipSpeed = slipSpeed;
+			forwardSlip = slipSpeed;
 			return;
 		}
 
@@ -43,7 +43,6 @@ public class Wheel : MonoBehaviour {
 
 		if ((!Slipping) || slipVelocity.magnitude < zeroSpeedThreshold) {
 			if (Mathf.Abs(forwardForceContribution) <= MaxFrictionForce) {
-				Debug.Log("Static");
 				// in the static range
 				rigidbody.velocity -= transform.rotation * Vector3.right * SidewaysVelocity;
 				forwardForce = forwardForceContribution;
@@ -53,7 +52,6 @@ public class Wheel : MonoBehaviour {
 			}
 			// make it slip
 			forwardSlip = slipSpeed;
-			Debug.Log("Enter slip: " + forwardSlip);
 		}
 
 		// Debug.Log("Slip");
