@@ -12,7 +12,7 @@ public class SimulationRuntime {
 
     private static final long CYCLE_TIME_MS = 20;
     private static final int DISABLED_CYCLES = 100;
-    private static final int AUTON_CYCLES = 1000;
+    private static final int AUTON_CYCLES = 100;
 
     // TODO: apply a feedback cycle for timing
     public static void main(String[] args) {

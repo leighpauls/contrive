@@ -14,8 +14,9 @@ public class EmulationEncoderAdapter {
     private final int mBChannel;
 
     // encoder state
-    double mPosition;
-    double mRate;
+    private double mPosition;
+    private double mPeriod;
+    private boolean mDirection;
 
     public EmulationEncoderAdapter(
             int aSlot,
@@ -28,7 +29,8 @@ public class EmulationEncoderAdapter {
         mBChannel = bChannel;
 
         mPosition = 0;
-        mRate = 0;
+        mPeriod = 0;
+        mDirection = true;
     }
 
     public EmulationEncoder getInstance(
@@ -37,9 +39,10 @@ public class EmulationEncoderAdapter {
         return new EmulationEncoder(reverseDirection, encodingType);
     }
 
-    public void updateSensor(double position, double rate) {
+    public void updateSensor(double position, double period, boolean direction) {
         mPosition = position;
-        mRate = rate;
+        mPeriod = period;
+        mDirection = direction;
     }
 
     public class EmulationEncoder extends AbstractEncoder {
@@ -50,7 +53,7 @@ public class EmulationEncoderAdapter {
 
         public EmulationEncoder(boolean reverseDirection, CounterBase.EncodingType encodingType) {
             mReverseDirection = reverseDirection;
-            mDistPerPulse = 1.0;
+            mDistPerPulse = 0.01;
             mStarted = false;
 
             if (encodingType.equals(CounterBase.EncodingType.k1X)) {
@@ -77,15 +80,15 @@ public class EmulationEncoderAdapter {
         }
 
         public boolean getDirection() {
-            return (mRate > 0) ? (!mReverseDirection) : mReverseDirection;
+            return mDirection;
         }
 
         public double getDistance() {
-            return mDistPerPulse * mPosition / mEncodingScale;
+            return mDistPerPulse * mPosition / mEncodingScale * (mReverseDirection ? -1.0 : 1.0);
         }
 
         public double getRate() {
-            return mDistPerPulse * mRate / mEncodingScale;
+            return mDistPerPulse / (mEncodingScale * mPeriod) * (mReverseDirection ? -1.0 : 1.0);
         }
         public void setDistancePerPulse(double distancePerPulse) {
             mDistPerPulse = distancePerPulse;
