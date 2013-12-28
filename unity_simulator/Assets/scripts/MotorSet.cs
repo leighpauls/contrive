@@ -1,19 +1,18 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class RobotKeyControl : MonoBehaviour {
-	Wheel[] leftWheels;
-	Wheel[] rightWheels;
-
-	void Start() {
-		leftWheels = transform.FindChild("left").GetComponentsInChildren<Wheel>();
-		rightWheels = transform.FindChild("right").GetComponentsInChildren<Wheel>();
-	}
-
+public class MotorSet : MonoBehaviour {
 	const float freeSpinSpeed = 3.75f;
 	const float stallForce = 718f;
 
-	void applyVoltageToWheels(float voltage, Wheel[] wheels) {
+	Wheel[] wheels;
+
+	// Use this for initialization
+	void Start () {
+		wheels = GetComponentsInChildren<Wheel>();
+	}
+
+	public void ApplyVoltage(float voltage) {
 		float wheelSpeed = 0f;
 		float netMaxForce = 0f;
 		foreach (var wheel in wheels) {
@@ -23,21 +22,12 @@ public class RobotKeyControl : MonoBehaviour {
 			wheelSpeed += forwardSpeed / wheels.Length;
 			netMaxForce += wheel.MaxFrictionForce;
 		}
-
+		
 		float staticForceInput = stallForce * (voltage - wheelSpeed / freeSpinSpeed);
 		float slipSpeed = Mathf.Sign(staticForceInput) * freeSpinSpeed * (stallForce - netMaxForce) / stallForce;
+
 		foreach (var wheel in wheels) {
 			wheel.ApplyChainForce(staticForceInput, netMaxForce, slipSpeed);
 		}
-	}
-
-	// Update is called once per frame
-	void Update () {
-		float y = Input.GetAxis("Vertical");
-		float x = Input.GetAxis("Horizontal");
-		float left = Mathf.Clamp(y + x, -1f, 1f);
-		float right = Mathf.Clamp(y - x, -1f, 1f);
-		applyVoltageToWheels(left, leftWheels);
-		applyVoltageToWheels(right, rightWheels);
 	}
 }
