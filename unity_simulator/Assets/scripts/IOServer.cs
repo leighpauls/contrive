@@ -6,7 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.IO;
 using System.Text;
-using fastJSON;
+using SimpleJSON;
 
 public class IOServer : MonoBehaviour {
 
@@ -14,6 +14,7 @@ public class IOServer : MonoBehaviour {
 	private Semaphore available, empty;
 	private string lastLine;
 	private Dictionary<string, ActuatorType> actuatorTypes;
+	private Dictionary<string, SensorType> sensorTypes;
 
 	public enum ControlMode {
 		Disabled,
@@ -31,20 +32,30 @@ public class IOServer : MonoBehaviour {
 
 		CurControlMode = ControlMode.Teleop;
 		actuatorTypes = new Dictionary<string, ActuatorType>();
+		sensorTypes = new Dictionary<string, SensorType>();
 
 		thread = new Thread(new ThreadStart(this.ServerThread));
 		thread.Start();
 	}
 
 	void Update() {
+		// check for actuator signals
 		if (available.WaitOne(0)) {
 			string[] lines = lastLine.Split("\n".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
 			foreach (var line in lines) {
-				Dictionary<string, object> message = (Dictionary<string, object>) JSON.Instance.Parse(line);
-				string messageType = (string)message["type"];
+				JSONNode message = JSON.Parse(line);
+				string messageType = message["type"];
 				actuatorTypes[messageType].handleMessage(message);
 			}
 			empty.Release();
+		}
+
+		// send back the sensor signals
+		foreach (KeyValuePair<string, SensorType> entry in sensorTypes) {
+			JSONNode[] states = entry.Value.GetSensorStates();
+			foreach (var state in states) {
+				Debug.Log(state.ToString());
+			}
 		}
 	}
 
@@ -80,8 +91,13 @@ public class IOServer : MonoBehaviour {
 	}
 
 	
-	public void RegisterActuatorType(string actuatorName, ActuatorType actuator) {
-		Debug.Log ("Registered: " + actuatorName);
-		actuatorTypes[actuatorName] = actuator;
+	public void RegisterActuatorType(string actuatorName, ActuatorType actuatorType) {
+		Debug.Log ("Registered actuator: " + actuatorName);
+		actuatorTypes[actuatorName] = actuatorType;
+	}
+
+	public void RegisterSensorType(string sensorName, SensorType sensorType) {
+		Debug.Log("Registered sensor: " + sensorType);
+		sensorTypes[sensorName] = sensorType;
 	}
 }

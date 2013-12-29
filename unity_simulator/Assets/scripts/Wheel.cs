@@ -4,8 +4,8 @@ using System.Collections;
 public class Wheel : MonoBehaviour {
 	const float uDynamic = 0.95f;
 	const float uStatic = 1.95f;
-	const float zeroSpeedThreshold = 0.001f;
-	const float zeroForceThreshold = 0.001f;
+	const float zeroSpeedThreshold = 0.1f;
+	const float zeroForceThreshold = 0.01f;
 
 	private float forwardForce, sidewaysForce;
 	private float forwardSlip;
@@ -32,7 +32,7 @@ public class Wheel : MonoBehaviour {
 			// not touching the ground
 			forwardForce = 0f;
 			sidewaysForce = 0f;
-			forwardSlip = slipSpeed;
+			forwardSlip = 0f;
 			return;
 		}
 
@@ -54,7 +54,6 @@ public class Wheel : MonoBehaviour {
 			forwardSlip = slipSpeed;
 		}
 
-		// Debug.Log("Slip");
 		// resolve slipping as usual
 		forwardSlip = slipSpeed;
 		Vector2 slipDirection = slipVelocity.normalized;
@@ -62,7 +61,14 @@ public class Wheel : MonoBehaviour {
 		sidewaysForce = slipDirection.y * MaxFrictionForce;
 	}
 
+	public float EncoderSpeed {
+		get { return Vector3.Dot(this.rigidbody.velocity, transform.rotation * Vector3.forward) + forwardSlip; }
+	}
+
 	void Update() {
-		rigidbody.AddRelativeForce(Vector3.forward * forwardForce + Vector3.right * sidewaysForce);
+		Vector3 relativeForce = Vector3.forward * forwardForce + Vector3.right * sidewaysForce;
+		rigidbody.AddRelativeForce(relativeForce);
+		// draw the wheels force applied to the robot
+		Debug.DrawRay(transform.position, this.transform.rotation * relativeForce * 0.01f, Color.green, 0, false);
 	}
 }

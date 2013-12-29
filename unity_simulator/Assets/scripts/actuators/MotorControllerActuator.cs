@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 using System;
 using System.Collections;
-using System.Collections.Generic;
+using SimpleJSON;
 
 public class MotorControllerActuator : MonoBehaviour, ActuatorType {
 	MotorSet rightMotor, leftMotor;
-	// Use this for initialization
+
 	void Start () {
 		// Tell the ioserver about myself
 		GetComponent<IOServer>().RegisterActuatorType("motor_controller", this);
@@ -15,12 +15,11 @@ public class MotorControllerActuator : MonoBehaviour, ActuatorType {
 		rightMotor = robot.transform.FindChild("right").GetComponentInChildren<MotorSet>();
 	}
 
-	public void handleMessage(Dictionary<string, object> message) {
-		Dictionary<string, object> data = (Dictionary<string, object>) message["data"];
-		Debug.Log(data["slot"].GetType());
-		long slot = (long) data["slot"];
-		long channel = (long) data["channel"];
-		double power = (double) data["power"];
+	public void handleMessage(JSONNode message) {
+		JSONNode data = message["data"];
+		int slot = data["slot"].AsInt;
+		int channel = data["channel"].AsInt;
+		float power = data["power"].AsFloat;
 
 		// TODO: drive this from a config file
 		if (slot == 1 && channel == 1) {
