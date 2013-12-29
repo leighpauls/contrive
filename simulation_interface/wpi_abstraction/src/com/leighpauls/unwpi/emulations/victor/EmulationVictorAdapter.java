@@ -28,9 +28,9 @@ public class EmulationVictorAdapter {
         }
 
         public void set(double power) {
-            mPower = power;
+            mPower = Math.max(-1, Math.min(1, power));
             mSimulationServer.sendActuatorCommand(
-                    new MotorControllerCommand(mSlot, mChannel, power));
+                    new MotorControllerCommand(mSlot, mChannel, mPower));
         }
 
         public double get() {
