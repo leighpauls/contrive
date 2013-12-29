@@ -35,8 +35,10 @@ public class MotorSet : MonoBehaviour {
 			}
 			
 			if (numWheelsOnGround > 0) {
+				// only count wheels resisted by ground forces
 				wheelSpeed = wheelSpeed / numWheelsOnGround;
 			} else {
+				// wheels are freespinning in the air, so count them all
 				wheelSpeed = allWheelSpeed / wheels.Length;
 			}
 			return wheelSpeed;
@@ -73,6 +75,37 @@ public class MotorSet : MonoBehaviour {
 
 	void Update() {
 		float wheelSpeed = ApproxWheelSpeed;
+
+		Debug.DrawRay(
+			transform.position,
+			transform.rotation * Vector3.forward * wheelSpeed,
+			Color.white,
+			0,
+			false);
+		Debug.DrawRay(
+			transform.position + Vector3.up * 0.2f,
+			transform.FindChild("middle").rigidbody.velocity,
+			Color.blue,
+			0,
+			false);
+		foreach (var wheelCollider in wheels) {
+			WheelHit hit;
+			if (wheelCollider.GetGroundHit(out hit)) {
+				Debug.DrawRay(
+					wheelCollider.transform.position + Vector3.up * 0.3f,
+					this.transform.rotation * Vector3.forward * hit.forwardSlip,
+					(Mathf.Abs(hit.forwardSlip) > wheelCollider.forwardFriction.extremumSlip ? Color.red : Color.green),
+					0,
+					false);
+				Debug.DrawRay(
+					wheelCollider.transform.position + Vector3.up * 0.3f,
+					this.transform.rotation * Vector3.right * hit.sidewaysSlip,
+					(Mathf.Abs(hit.sidewaysSlip) > wheelCollider.sidewaysFriction.extremumSlip ? Color.red : Color.green),
+					0,
+					false);
+			}
+		}
+		
 		EncoderPosition += wheelSpeed * Time.deltaTime;
 		if (Mathf.Approximately(wheelSpeed, 0f)) {
 			// it hasn't moved at all this frame
