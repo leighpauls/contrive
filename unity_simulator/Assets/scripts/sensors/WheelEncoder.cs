@@ -7,32 +7,26 @@ public class WheelEncoder : MonoBehaviour, SensorType {
 	
 	void Start () {
 		// Tell the ioserver about myself
-		GetComponent<IOServer>().RegisterSensorType("motor_controller", this);
+		GetComponent<IOServer>().RegisterSensorType("encoder", this);
 		// get all of the motors
 		GameObject robot = GameObject.Find("robot");
 		leftMotor = robot.transform.FindChild("left").GetComponentInChildren<MotorSet>();
 		rightMotor = robot.transform.FindChild("right").GetComponentInChildren<MotorSet>();
-	}
-	
-	// Update is called once per frame
-	void Update () {
-	
 	}
 
 	private JSONNode encodeSensor(
 		int aSlot,
 		int aChannel, 
 		int bSlot,
-		int bchannel,
+		int bChannel,
 		MotorSet motorSet) {
 		var res = new JSONClass();
 		res.Add("a_slot", new JSONData(aSlot));
 		res.Add("a_channel", new JSONData(aChannel));
 		res.Add("b_slot", new JSONData(bSlot));
-		res.Add("b_channel", new JSONData(aChannel));
-
-		int position = (int)(motorSet.EncoderPosition / 0.01f);
-		res.Add("position", new JSONData(position));
+		res.Add("b_channel", new JSONData(bChannel));
+		res.Add("position", new JSONData(motorSet.EncoderPosition));
+		res.Add("period", new JSONData(motorSet.EncoderPeriod));
 
 		return res;
 	}

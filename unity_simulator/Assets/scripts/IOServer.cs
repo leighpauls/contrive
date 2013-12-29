@@ -11,8 +11,13 @@ using SimpleJSON;
 public class IOServer : MonoBehaviour {
 
 	private Thread thread;
-	private Semaphore available, empty;
+
+	private Semaphore actuatorAvailable, actuatorEmpty;
 	private string lastLine;
+
+	private Mutex sensorAvailable;
+	private string sensorOutput;
+
 	private Dictionary<string, ActuatorType> actuatorTypes;
 	private Dictionary<string, SensorType> sensorTypes;
 
@@ -27,8 +32,11 @@ public class IOServer : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		Application.runInBackground = true;
-		available = new Semaphore(0, 1);
-		empty = new Semaphore(1, 1);
+		actuatorAvailable = new Semaphore(0, 1);
+		actuatorEmpty = new Semaphore(1, 1);
+
+		sensorAvailable = new Mutex();
+		sensorOutput = null;
 
 		CurControlMode = ControlMode.Teleop;
 		actuatorTypes = new Dictionary<string, ActuatorType>();
@@ -40,23 +48,30 @@ public class IOServer : MonoBehaviour {
 
 	void Update() {
 		// check for actuator signals
-		if (available.WaitOne(0)) {
+		if (actuatorAvailable.WaitOne(0)) {
 			string[] lines = lastLine.Split("\n".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
 			foreach (var line in lines) {
 				JSONNode message = JSON.Parse(line);
 				string messageType = message["type"];
 				actuatorTypes[messageType].handleMessage(message);
 			}
-			empty.Release();
+			actuatorEmpty.Release();
 		}
 
 		// send back the sensor signals
+		string sensorJson = "";
 		foreach (KeyValuePair<string, SensorType> entry in sensorTypes) {
 			JSONNode[] states = entry.Value.GetSensorStates();
 			foreach (var state in states) {
-				Debug.Log(state.ToString());
+				JSONClass command = new JSONClass();
+				command.Add("data", state);
+				command.Add("type", entry.Key);
+				sensorJson += command.ToString() + "\n";
 			}
 		}
+		sensorAvailable.WaitOne();
+		sensorOutput = sensorJson;
+		sensorAvailable.ReleaseMutex();
 	}
 
 	void ServerThread() {
@@ -74,14 +89,23 @@ public class IOServer : MonoBehaviour {
 			Debug.Log("Accepted Client");
 			CurControlMode = ControlMode.Auto;
 			while(true) {
+				// recive some data
 				int bytesReceived = client.Receive(bytes);
 				if (bytesReceived == 0) {
 					break;
 				}
 				string strData = Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-				empty.WaitOne();
+				actuatorEmpty.WaitOne();
 				lastLine = strData;
-				available.Release();
+				actuatorAvailable.Release();
+
+				// see if there's any data to send
+				sensorAvailable.WaitOne();
+				if (sensorOutput != null) {
+					client.Send(Encoding.ASCII.GetBytes(sensorOutput));
+					sensorOutput = null;
+				}
+				sensorAvailable.ReleaseMutex();
 			}
 
 			Debug.Log("Socket disconnected");

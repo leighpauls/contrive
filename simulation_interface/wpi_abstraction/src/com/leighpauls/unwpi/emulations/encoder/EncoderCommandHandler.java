@@ -20,14 +20,16 @@ public class EncoderCommandHandler implements SensorCommandHandler {
 
     public void handleSensorCommand(JSONObject command) {
         JSONObject data = (JSONObject) command.get("data");
-        int aSlot = ((Integer)data.get("a_slot")).intValue();
-        int aChannel = ((Integer)data.get("a_channel")).intValue();
-        int bSlot = ((Integer)data.get("b_slot")).intValue();
-        int bChannel = ((Integer)data.get("b_channel")).intValue();
-        double lastPeriod = ((Double)data.get("period")).doubleValue();
-        double position = ((Double)data.get("position")).doubleValue();
+        int aSlot = Integer.parseInt((String)data.get("a_slot"));
+        int aChannel = Integer.parseInt((String)data.get("a_channel"));
+        int bSlot = Integer.parseInt((String)data.get("b_slot"));
+        int bChannel = Integer.parseInt((String)data.get("b_channel"));
+
+        double lastPeriod = Double.parseDouble((String) data.get("period"));
+        double position = Double.parseDouble((String) data.get("position"));
+        boolean direction = Boolean.parseBoolean((String)data.get("direction"));
 
         mModel.getEncoder(new EncoderAddress(aSlot, aChannel, bSlot, bChannel))
-                .updateSensor(position, lastPeriod);
+                .updateSensor(position, lastPeriod, direction);
     }
 }

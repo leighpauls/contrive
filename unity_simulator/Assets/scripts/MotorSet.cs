@@ -4,9 +4,12 @@ using System.Collections;
 public class MotorSet : MonoBehaviour {
 	const float freeSpinSpeed = 3.75f;
 	const float stallForce = 718f;
+	const float distPerTick = 0.01f;
 
 	Wheel[] wheels;
 	public float EncoderPosition { get; private set; }
+	public float EncoderPeriod { get; private set; }
+	public bool EncoderMovingForward { get; private set; }
 
 	// Use this for initialization
 	void Start () {
@@ -54,5 +57,13 @@ public class MotorSet : MonoBehaviour {
 				false);
 		}
 		EncoderPosition += encoderSpeed * Time.deltaTime;
+		if (Mathf.Approximately(encoderSpeed, 0f)) {
+			// it hasn't moved at all this frame
+			EncoderPeriod += Time.deltaTime;
+		} else {
+			EncoderMovingForward = encoderSpeed > 0f;
+			EncoderPeriod = distPerTick / encoderSpeed;
+		}
+
 	}
 }
