@@ -53,7 +53,7 @@ public class IOServer : MonoBehaviour {
 			foreach (var line in lines) {
 				JSONNode message = JSON.Parse(line);
 				string messageType = message["type"];
-				actuatorTypes[messageType].handleMessage(message);
+				actuatorTypes[messageType].HandleMessage(message);
 			}
 			actuatorEmpty.Release();
 		}
@@ -123,5 +123,15 @@ public class IOServer : MonoBehaviour {
 	public void RegisterSensorType(string sensorName, SensorType sensorType) {
 		Debug.Log("Registered sensor: " + sensorType);
 		sensorTypes[sensorName] = sensorType;
+	}
+
+	public void Reset() {
+		foreach (KeyValuePair<string, ActuatorType> entry in actuatorTypes) {
+			entry.Value.Reset();
+		}
+		foreach (KeyValuePair<string, SensorType> entry in sensorTypes) {
+			entry.Value.Reset();
+		}
+
 	}
 }

@@ -3,7 +3,7 @@ using System.Collections;
 
 public class MotorSet : MonoBehaviour {
 	const float freeSpinSpeed = 3.75f;
-	const float stallForce = 718f;
+	const float stallForce = 718f * 0.9f;
 	const float distPerTick = 0.01f;
 
 	WheelCollider[] wheels;
@@ -14,9 +14,20 @@ public class MotorSet : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		wheels = GetComponentsInChildren<WheelCollider>();
+		ResetSensor();
+		ResetActuator();
+	}
+
+	public void ResetSensor() {
 		EncoderPosition = 0f;
 		EncoderPeriod = 0.00001f;
 		EncoderMovingForward = true;
+	}
+	public void ResetActuator() {
+		foreach (var wheel in wheels) {
+			wheel.motorTorque = 0f;
+			wheel.brakeTorque = Mathf.Infinity;
+		}
 	}
 
 	private float ApproxWheelSpeed { get {
@@ -69,6 +80,7 @@ public class MotorSet : MonoBehaviour {
 
 		foreach (var wheel in wheels) {
 			float torque = (forceInput * wheel.radius) / wheelsOnGround;
+			wheel.brakeTorque = 0f;
 			wheel.motorTorque = torque;
 		}
 	}
@@ -82,23 +94,17 @@ public class MotorSet : MonoBehaviour {
 			Color.white,
 			0,
 			false);
-		Debug.DrawRay(
-			transform.position + Vector3.up * 0.2f,
-			transform.FindChild("middle").rigidbody.velocity,
-			Color.blue,
-			0,
-			false);
 		foreach (var wheelCollider in wheels) {
 			WheelHit hit;
 			if (wheelCollider.GetGroundHit(out hit)) {
 				Debug.DrawRay(
-					wheelCollider.transform.position + Vector3.up * 0.3f,
+					wheelCollider.transform.position + Vector3.up * 0.1f,
 					this.transform.rotation * Vector3.forward * hit.forwardSlip,
 					(Mathf.Abs(hit.forwardSlip) > wheelCollider.forwardFriction.extremumSlip ? Color.red : Color.green),
 					0,
 					false);
 				Debug.DrawRay(
-					wheelCollider.transform.position + Vector3.up * 0.3f,
+					wheelCollider.transform.position + Vector3.up * 0.1f,
 					this.transform.rotation * Vector3.right * hit.sidewaysSlip,
 					(Mathf.Abs(hit.sidewaysSlip) > wheelCollider.sidewaysFriction.extremumSlip ? Color.red : Color.green),
 					0,

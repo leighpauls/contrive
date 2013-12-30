@@ -1,6 +1,7 @@
 package com.leighpauls;
 
 import com.example.MyRobotCode;
+import com.leighpauls.simulationactuators.Reset;
 import com.leighpauls.unwpi.IterativeRobotInterface;
 import com.leighpauls.unwpi.simulation.SimulationModel;
 import com.leighpauls.unwpi.simulation.SimulationServer;
@@ -11,16 +12,17 @@ import com.leighpauls.unwpi.simulation.SimulationServer;
 public class SimulationRuntime {
 
     private static final long CYCLE_TIME_MS = 20;
-    private static final int DISABLED_CYCLES = 100;
+    private static final int DISABLED_CYCLES = 10;
     private static final int AUTON_CYCLES = 100;
 
     // TODO: apply a feedback cycle for timing
     public static void main(String[] args) {
-        System.out.println("Hello World!");
+        System.out.println("Simualtion starting");
 
         SimulationServer server = SimulationModel.connectToSimulationServer();
         IterativeRobotInterface robot = new MyRobotCode();
 
+        server.sendActuatorCommand(new Reset());
         server.handleSensorCommands();
         robot.robotInit();
         robot.disabledInit();

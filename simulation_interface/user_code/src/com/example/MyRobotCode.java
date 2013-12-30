@@ -34,8 +34,8 @@ public class MyRobotCode implements IterativeRobotInterface {
 
     public void autonomousInit() {}
     public void autonomousPeriodic() {
-        mLeftDriveVictor.set(5-mLeftDriveEncoder.getDistance());
-        mRightDriveVictor.set(5-mRightDriveEncoder.getDistance());
+        mLeftDriveVictor.set(2-mLeftDriveEncoder.getDistance());
+        mRightDriveVictor.set(2-mRightDriveEncoder.getDistance());
     }
 
     public void teleopInit() {}

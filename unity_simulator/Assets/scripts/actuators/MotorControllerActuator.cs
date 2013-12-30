@@ -15,7 +15,7 @@ public class MotorControllerActuator : MonoBehaviour, ActuatorType {
 		rightMotor = robot.transform.FindChild("right").GetComponentInChildren<MotorSet>();
 	}
 
-	public void handleMessage(JSONNode message) {
+	public void HandleMessage(JSONNode message) {
 		JSONNode data = message["data"];
 		int slot = data["slot"].AsInt;
 		int channel = data["channel"].AsInt;
@@ -27,5 +27,8 @@ public class MotorControllerActuator : MonoBehaviour, ActuatorType {
 		} else if (slot == 1 && channel == 2) {
 			rightMotor.ApplyVoltage((float)power);
 		}
+	}
+
+	public void Reset() {
 	}
 }

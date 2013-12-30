@@ -41,7 +41,6 @@ public class SimulationServer {
 
     public void sendActuatorCommand(ActuatorCommand command) {
         String cmdString = command.getCommand().toJSONString();
-        System.out.println(cmdString);
         mWriter.println(cmdString);
     }
 
@@ -58,14 +57,13 @@ public class SimulationServer {
     }
 
     public void handleSensorCommands() {
-        System.out.println("Handle sensor commands!");
-
         // read out of the reader
         try {
             while (mReader.ready()) {
                 int code = mReader.read();
                 if (code == '\n') {
                     String line = inputBuffer.toString();
+                    System.out.println(line);
                     handleCommand(line);
                     inputBuffer = new StringBuffer();
                 } else {

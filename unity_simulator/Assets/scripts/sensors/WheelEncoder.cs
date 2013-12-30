@@ -37,4 +37,9 @@ public class WheelEncoder : MonoBehaviour, SensorType {
 			encodeSensor(1, 3, 1, 4, rightMotor)
 		};
 	}
+
+	public void Reset() {
+		rightMotor.ResetSensor();
+		leftMotor.ResetSensor();
+	}
 }
