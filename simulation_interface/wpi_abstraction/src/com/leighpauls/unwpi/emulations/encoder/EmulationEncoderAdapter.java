@@ -53,7 +53,7 @@ public class EmulationEncoderAdapter {
 
         public EmulationEncoder(boolean reverseDirection, CounterBase.EncodingType encodingType) {
             mReverseDirection = reverseDirection;
-            mDistPerPulse = 0.01;
+            mDistPerPulse = 1.0;
             mStarted = false;
 
             if (encodingType.equals(CounterBase.EncodingType.k1X)) {

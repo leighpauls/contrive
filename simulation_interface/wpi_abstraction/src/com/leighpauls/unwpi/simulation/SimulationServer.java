@@ -63,7 +63,6 @@ public class SimulationServer {
                 int code = mReader.read();
                 if (code == '\n') {
                     String line = inputBuffer.toString();
-                    System.out.println(line);
                     handleCommand(line);
                     inputBuffer = new StringBuffer();
                 } else {
