@@ -100,13 +100,13 @@ public class MotorSet : MonoBehaviour {
 				Debug.DrawRay(
 					wheelCollider.transform.position + Vector3.up * 0.1f,
 					this.transform.rotation * Vector3.forward * hit.forwardSlip,
-					(Mathf.Abs(hit.forwardSlip) > wheelCollider.forwardFriction.extremumSlip ? Color.red : Color.green),
+					(Mathf.Abs(hit.forwardSlip) > wheelCollider.forwardFriction.asymptoteSlip ? Color.red : Color.green),
 					0,
 					false);
 				Debug.DrawRay(
 					wheelCollider.transform.position + Vector3.up * 0.1f,
 					this.transform.rotation * Vector3.right * hit.sidewaysSlip,
-					(Mathf.Abs(hit.sidewaysSlip) > wheelCollider.sidewaysFriction.extremumSlip ? Color.red : Color.green),
+					(Mathf.Abs(hit.sidewaysSlip) > wheelCollider.sidewaysFriction.asymptoteSlip ? Color.red : Color.green),
 					0,
 					false);
 			}

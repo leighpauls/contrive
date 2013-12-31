@@ -1,21 +1,17 @@
 package com.leighpauls.unwpi.emulations.victor;
 
+import com.leighpauls.unwpi.emulations.addresses.PwmAddress;
 import com.leighpauls.unwpi.simulation.ActuatorCommand;
-import com.leighpauls.unwpi.simulation.SimulationServer;
 
 /**
  * Implementation of an emulated victor
  */
 public class EmulationVictor {
-    private final SimulationServer mSimulationServer;
-    private final int mSlot;
-    private final int mChannel;
+    private final PwmAddress mAddress;
     private double mPower;
 
-    public EmulationVictor(SimulationServer simulationServer, int slot, int channel) {
-        mSimulationServer = simulationServer;
-        mSlot = slot;
-        mChannel = channel;
+    public EmulationVictor(PwmAddress address) {
+        mAddress = address;
         mPower = 0.0;
     }
 
@@ -24,7 +20,7 @@ public class EmulationVictor {
     }
 
     public ActuatorCommand getActuatorCommand() {
-        return new MotorControllerCommand(mSlot, mChannel, mPower);
+        return new MotorControllerCommand(mAddress.getSlot(), mAddress.getChannel(), mPower);
     }
 
     public class EmulationVictorDelegate extends AbstractVictor {

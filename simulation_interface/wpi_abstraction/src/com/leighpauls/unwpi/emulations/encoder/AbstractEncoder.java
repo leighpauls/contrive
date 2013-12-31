@@ -1,6 +1,7 @@
 package com.leighpauls.unwpi.emulations.encoder;
 
 import com.leighpauls.unwpi.InjectionController;
+import com.leighpauls.unwpi.emulations.addresses.EncoderAddress;
 import com.leighpauls.unwpi.simulation.SimulationModel;
 import edu.wpi.first.wpilibj.CounterBase;
 import edu.wpi.first.wpilibj.SensorBase;
@@ -18,10 +19,7 @@ public abstract class AbstractEncoder {
             CounterBase.EncodingType encodingType) {
         if (InjectionController.isEmulation()) {
             return SimulationModel.getInstance().getEncoder(
-                    aSlot,
-                    aChannel,
-                    bSlot,
-                    bChannel,
+                    new EncoderAddress(aSlot, aChannel, bSlot, bChannel),
                     reverseDirection,
                     encodingType);
         } else {

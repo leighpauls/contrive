@@ -1,5 +1,6 @@
 package com.leighpauls.unwpi.emulations.encoder;
 
+import com.leighpauls.unwpi.emulations.addresses.EncoderAddress;
 import com.leighpauls.unwpi.simulation.SensorCommandHandler;
 import com.leighpauls.unwpi.simulation.SimulationModel;
 import org.json.simple.JSONObject;

@@ -1,9 +1,13 @@
 package com.leighpauls.unwpi.simulation;
 
+import com.leighpauls.unwpi.emulations.addresses.AnalogAddress;
 import com.leighpauls.unwpi.emulations.encoder.EmulationEncoder;
-import com.leighpauls.unwpi.emulations.encoder.EncoderAddress;
+import com.leighpauls.unwpi.emulations.addresses.EncoderAddress;
+import com.leighpauls.unwpi.emulations.gyro.AbstractGyro;
+import com.leighpauls.unwpi.emulations.gyro.EmulationGyro;
+import com.leighpauls.unwpi.emulations.gyro.GyroCommandHandler;
 import com.leighpauls.unwpi.emulations.victor.EmulationVictor;
-import com.leighpauls.unwpi.emulations.victor.VictorAddress;
+import com.leighpauls.unwpi.emulations.addresses.PwmAddress;
 import com.leighpauls.unwpi.emulations.encoder.EncoderCommandHandler;
 import edu.wpi.first.wpilibj.CounterBase;
 import org.json.simple.JSONObject;
@@ -17,6 +21,7 @@ import java.util.Iterator;
  */
 public class SimulationModel {
     private static SimulationModel sInstance;
+
     public static SimulationModel getInstance() {
         if (sInstance == null) {
             sInstance = new SimulationModel();
@@ -34,31 +39,48 @@ public class SimulationModel {
     private final SimulationServer mSimulationServer;
     private final HashMap mVictors;
     private final HashMap mEncoders;
+    private final HashMap mGyros;
 
     private SimulationModel() {
-        SensorDelegate delegateInstance = new SensorDelegate();
+        SensorDelegate sensorDelegate = new SensorDelegate();
         SensorCommandHandler[] handlers = new SensorCommandHandler[] {
-                new EncoderCommandHandler(delegateInstance)
+                new EncoderCommandHandler(sensorDelegate),
+                new GyroCommandHandler(sensorDelegate)
         };
 
         mSimulationServer = new SimulationServer(handlers, new ActuatorDelegate());
 
         mVictors = new HashMap();
         mEncoders = new HashMap();
+        mGyros = new HashMap();
 
-        addVictor(1, 1);
-        addVictor(1, 2);
+        RobotBuildDelegate buildDelegate = new RobotBuildDelegate();
 
-        addEncoder(1, 1, 1, 2);
-        addEncoder(1, 3, 1, 4);
+        // TODO: do this build dynamically
+        buildDelegate.addVictor(new PwmAddress(1, 1));
+        buildDelegate.addVictor(new PwmAddress(1, 2));
+
+        buildDelegate.addEncoder(new EncoderAddress(1, 1, 1, 2));
+        buildDelegate.addEncoder(new EncoderAddress(1, 3, 1, 4));
+
+        buildDelegate.addGyro(new AnalogAddress(1, 1));
     }
 
+    /**
+     * Exposes functions for injecting the state of the emulated sensors
+     */
     public class SensorDelegate {
         public EmulationEncoder getEncoder(EncoderAddress address) {
             return (EmulationEncoder) mEncoders.get(address);
         }
+        public EmulationGyro getGyro(AnalogAddress address) {
+            return (EmulationGyro) mGyros.get(address);
+        }
     }
 
+    /**
+     * Exposes functions for reading the emulated actuator output states
+     */
     public class ActuatorDelegate {
         /**
          * @return Messages containing the states of all the actuators
@@ -76,51 +98,44 @@ public class SimulationModel {
         }
     }
 
-    private void addVictor(int slot, int channel) {
-        VictorAddress address = new VictorAddress(slot, channel);
-        if (mVictors.containsKey(address)) {
-            throw new RuntimeException(
-                    "Tried to make more than one victor at " + address.toString());
+    /**
+     * Exposes functions for building the robot's hardware (eg. victor/encoder addresses)
+     */
+    public class RobotBuildDelegate {
+        public void addVictor(PwmAddress address) {
+            mVictors.put(address, new EmulationVictor(address));
         }
-        mVictors.put(address, new EmulationVictor(mSimulationServer, slot, channel));
+        public void addEncoder(EncoderAddress address) {
+            mEncoders.put(address, new EmulationEncoder());
+        }
+        public void addGyro(AnalogAddress address) {
+            mGyros.put(address, new EmulationGyro());
+        }
     }
 
-    private void addEncoder(int aSlot, int aChannel, int bSlot, int bChannel) {
-        EncoderAddress address = new EncoderAddress(aSlot, aChannel, bSlot, bChannel);
-        // TODO: check digital IO more completely
-        if (mEncoders.containsKey(address)) {
-            throw new RuntimeException(
-                    "Tried to make more than one encoder at " + address.toString());
-        }
-        mEncoders.put(address, new EmulationEncoder(
-                aSlot,
-                aChannel,
-                bSlot,
-                bChannel));
-    }
-
-    public EmulationVictor.EmulationVictorDelegate getVictor(int slot, int channel) {
-        VictorAddress address = new VictorAddress(slot, channel);
+    public EmulationVictor.EmulationVictorDelegate getVictor(PwmAddress address) {
         if (!mVictors.containsKey(address)) {
             throw new RuntimeException("No victor available at " + address.toString());
         }
-        EmulationVictor adapter = (EmulationVictor) mVictors.get(address);
-        return adapter.getInstance();
+        return ((EmulationVictor) mVictors.get(address)).getInstance();
     }
 
     public EmulationEncoder.EmulationEncoderDelegate getEncoder(
-            int aSlot,
-            int aChannel,
-            int bSlot,
-            int bChannel,
+            EncoderAddress address,
             boolean reverseDirection,
             CounterBase.EncodingType encodingType) {
-        EncoderAddress address = new EncoderAddress(aSlot, aChannel, bSlot, bChannel);
         if (!mEncoders.containsKey(address)) {
             throw new RuntimeException("No encoder available at " + address.toString());
         }
-        EmulationEncoder adapter = (EmulationEncoder) mEncoders.get(address);
-        return adapter.getInstance(reverseDirection, encodingType);
+        return ((EmulationEncoder) mEncoders.get(address))
+                .getInstance(reverseDirection, encodingType);
+    }
+
+    public AbstractGyro getGyro(AnalogAddress address) {
+        if (!mGyros.containsKey((address))) {
+            throw new RuntimeException("No gyro available at " + address.toString());
+        }
+        return ((EmulationGyro) mGyros.get(address)).getInstance();
     }
 
 }

@@ -7,27 +7,12 @@ import edu.wpi.first.wpilibj.CounterBase;
  */
 public class EmulationEncoder {
 
-    // encoder description
-    private final int mASlot;
-    private final int mAChannel;
-    private final int mBSlot;
-    private final int mBChannel;
-
     // encoder state
     private double mPosition;
     private double mPeriod;
     private boolean mDirection;
 
-    public EmulationEncoder(
-            int aSlot,
-            int aChannel,
-            int bSlot,
-            int bChannel) {
-        mASlot = aSlot;
-        mAChannel = aChannel;
-        mBSlot = bSlot;
-        mBChannel = bChannel;
-
+    public EmulationEncoder() {
         mPosition = 0;
         mPeriod = 0;
         mDirection = true;
