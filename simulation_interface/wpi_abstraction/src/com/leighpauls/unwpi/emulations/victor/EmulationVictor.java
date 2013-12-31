@@ -5,25 +5,25 @@ import com.leighpauls.unwpi.simulation.SimulationServer;
 /**
  * Implementation of an emulated victor
  */
-public class EmulationVictorAdapter {
+public class EmulationVictor {
     private final SimulationServer mSimulationServer;
     private final int mSlot;
     private final int mChannel;
 
-    public EmulationVictorAdapter(SimulationServer simulationServer, int slot, int channel) {
+    public EmulationVictor(SimulationServer simulationServer, int slot, int channel) {
         mSimulationServer = simulationServer;
         mSlot = slot;
         mChannel = channel;
     }
 
-    public EmulationVictor getInstance() {
-        return new EmulationVictor();
+    public EmulationVictorDelegate getInstance() {
+        return new EmulationVictorDelegate();
     }
 
-    public class EmulationVictor extends AbstractVictor {
+    public class EmulationVictorDelegate extends AbstractVictor {
         private double mPower;
 
-        private EmulationVictor() {
+        private EmulationVictorDelegate() {
             mPower = 0.0;
         }
 

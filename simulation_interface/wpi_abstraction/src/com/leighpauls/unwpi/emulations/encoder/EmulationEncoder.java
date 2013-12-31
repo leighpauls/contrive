@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.CounterBase;
 /**
  * Implementation of an emulated encoder
  */
-public class EmulationEncoderAdapter {
+public class EmulationEncoder {
 
     // encoder description
     private final int mASlot;
@@ -18,7 +18,7 @@ public class EmulationEncoderAdapter {
     private double mPeriod;
     private boolean mDirection;
 
-    public EmulationEncoderAdapter(
+    public EmulationEncoder(
             int aSlot,
             int aChannel,
             int bSlot,
@@ -33,10 +33,10 @@ public class EmulationEncoderAdapter {
         mDirection = true;
     }
 
-    public EmulationEncoder getInstance(
+    public EmulationEncoderDelegate getInstance(
             boolean reverseDirection,
             CounterBase.EncodingType encodingType) {
-        return new EmulationEncoder(reverseDirection, encodingType);
+        return new EmulationEncoderDelegate(reverseDirection, encodingType);
     }
 
     public void updateSensor(double position, double period, boolean direction) {
@@ -45,13 +45,13 @@ public class EmulationEncoderAdapter {
         mDirection = direction;
     }
 
-    public class EmulationEncoder extends AbstractEncoder {
+    public class EmulationEncoderDelegate extends AbstractEncoder {
         private boolean mReverseDirection;
         private double mDistPerPulse;
         private boolean mStarted;
         private final int mEncodingScale;
 
-        public EmulationEncoder(boolean reverseDirection, CounterBase.EncodingType encodingType) {
+        public EmulationEncoderDelegate(boolean reverseDirection, CounterBase.EncodingType encodingType) {
             mReverseDirection = reverseDirection;
             mDistPerPulse = 1.0;
             mStarted = false;

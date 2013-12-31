@@ -1,9 +1,9 @@
 package com.leighpauls.unwpi.simulation;
 
+import com.leighpauls.unwpi.emulations.encoder.EmulationEncoder;
 import com.leighpauls.unwpi.emulations.encoder.EncoderAddress;
-import com.leighpauls.unwpi.emulations.encoder.EmulationEncoderAdapter;
+import com.leighpauls.unwpi.emulations.victor.EmulationVictor;
 import com.leighpauls.unwpi.emulations.victor.VictorAddress;
-import com.leighpauls.unwpi.emulations.victor.EmulationVictorAdapter;
 import com.leighpauls.unwpi.emulations.encoder.EncoderCommandHandler;
 import edu.wpi.first.wpilibj.CounterBase;
 
@@ -28,20 +28,9 @@ public class SimulationModel {
         return model.mSimulationServer;
     }
 
-
     private final SimulationServer mSimulationServer;
     private final HashMap mVictors;
     private final HashMap mEncoders;
-
-    public class ModelDelegate {
-        public EmulationVictorAdapter getVictor(VictorAddress address) {
-            return (EmulationVictorAdapter) mVictors.get(address);
-        }
-        public EmulationEncoderAdapter getEncoder(EncoderAddress address) {
-            return (EmulationEncoderAdapter) mEncoders.get(address);
-        }
-    }
-
 
     private SimulationModel() {
         ModelDelegate delegateInstance = new ModelDelegate();
@@ -61,13 +50,22 @@ public class SimulationModel {
         addEncoder(1, 3, 1, 4);
     }
 
+    public class ModelDelegate {
+        public EmulationVictor getVictor(VictorAddress address) {
+            return (EmulationVictor) mVictors.get(address);
+        }
+        public EmulationEncoder getEncoder(EncoderAddress address) {
+            return (EmulationEncoder) mEncoders.get(address);
+        }
+    }
+
     private void addVictor(int slot, int channel) {
         VictorAddress address = new VictorAddress(slot, channel);
         if (mVictors.containsKey(address)) {
             throw new RuntimeException(
                     "Tried to make more than one victor at " + address.toString());
         }
-        mVictors.put(address, new EmulationVictorAdapter(mSimulationServer, slot, channel));
+        mVictors.put(address, new EmulationVictor(mSimulationServer, slot, channel));
     }
 
     private void addEncoder(int aSlot, int aChannel, int bSlot, int bChannel) {
@@ -77,23 +75,23 @@ public class SimulationModel {
             throw new RuntimeException(
                     "Tried to make more than one encoder at " + address.toString());
         }
-        mEncoders.put(address, new EmulationEncoderAdapter(
+        mEncoders.put(address, new EmulationEncoder(
                 aSlot,
                 aChannel,
                 bSlot,
                 bChannel));
     }
 
-    public EmulationVictorAdapter.EmulationVictor getVictor(int slot, int channel) {
+    public EmulationVictor.EmulationVictorDelegate getVictor(int slot, int channel) {
         VictorAddress address = new VictorAddress(slot, channel);
         if (!mVictors.containsKey(address)) {
             throw new RuntimeException("No victor available at " + address.toString());
         }
-        EmulationVictorAdapter adapter = (EmulationVictorAdapter) mVictors.get(address);
+        EmulationVictor adapter = (EmulationVictor) mVictors.get(address);
         return adapter.getInstance();
     }
 
-    public EmulationEncoderAdapter.EmulationEncoder getEncoder(
+    public EmulationEncoder.EmulationEncoderDelegate getEncoder(
             int aSlot,
             int aChannel,
             int bSlot,
@@ -104,7 +102,8 @@ public class SimulationModel {
         if (!mEncoders.containsKey(address)) {
             throw new RuntimeException("No encoder available at " + address.toString());
         }
-        EmulationEncoderAdapter adapter = (EmulationEncoderAdapter) mEncoders.get(address);
+        EmulationEncoder adapter = (EmulationEncoder) mEncoders.get(address);
         return adapter.getInstance(reverseDirection, encodingType);
     }
+
 }

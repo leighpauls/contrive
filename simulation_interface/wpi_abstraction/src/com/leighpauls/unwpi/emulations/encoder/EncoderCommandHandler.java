@@ -29,7 +29,12 @@ public class EncoderCommandHandler implements SensorCommandHandler {
         double position = Double.parseDouble((String) data.get("position"));
         boolean direction = Boolean.parseBoolean((String)data.get("direction"));
 
-        mModel.getEncoder(new EncoderAddress(aSlot, aChannel, bSlot, bChannel))
-                .updateSensor(position, lastPeriod, direction);
+        EncoderAddress address = new EncoderAddress(aSlot, aChannel, bSlot, bChannel);
+        EmulationEncoder encoder = mModel.getEncoder(address);
+        if (encoder == null) {
+            System.out.println("Received command for unknown encoder: " + address);
+            return;
+        }
+        encoder.updateSensor(position, lastPeriod, direction);
     }
 }
