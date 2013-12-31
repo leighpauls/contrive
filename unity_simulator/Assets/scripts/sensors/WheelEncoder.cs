@@ -14,7 +14,7 @@ public class WheelEncoder : MonoBehaviour, SensorType {
 		rightMotor = robot.transform.FindChild("right").GetComponentInChildren<MotorSet>();
 	}
 
-	private JSONNode encodeSensor(
+	private JSONClass encodeSensor(
 		int aSlot,
 		int aChannel, 
 		int bSlot,
@@ -31,8 +31,8 @@ public class WheelEncoder : MonoBehaviour, SensorType {
 		return res;
 	}
 	
-	public JSONNode[] GetSensorStates() {
-		return new JSONNode[] {
+	public JSONClass[] GetSensorStates() {
+		return new JSONClass[] {
 			encodeSensor(1, 1, 1, 2, leftMotor),
 			encodeSensor(1, 3, 1, 4, rightMotor)
 		};

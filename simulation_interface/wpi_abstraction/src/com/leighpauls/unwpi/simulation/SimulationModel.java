@@ -6,8 +6,11 @@ import com.leighpauls.unwpi.emulations.victor.EmulationVictor;
 import com.leighpauls.unwpi.emulations.victor.VictorAddress;
 import com.leighpauls.unwpi.emulations.encoder.EncoderCommandHandler;
 import edu.wpi.first.wpilibj.CounterBase;
+import org.json.simple.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * Interface used to connect to the physical simulation
@@ -33,12 +36,12 @@ public class SimulationModel {
     private final HashMap mEncoders;
 
     private SimulationModel() {
-        ModelDelegate delegateInstance = new ModelDelegate();
+        SensorDelegate delegateInstance = new SensorDelegate();
         SensorCommandHandler[] handlers = new SensorCommandHandler[] {
                 new EncoderCommandHandler(delegateInstance)
         };
 
-        mSimulationServer = new SimulationServer(handlers);
+        mSimulationServer = new SimulationServer(handlers, new ActuatorDelegate());
 
         mVictors = new HashMap();
         mEncoders = new HashMap();
@@ -50,12 +53,26 @@ public class SimulationModel {
         addEncoder(1, 3, 1, 4);
     }
 
-    public class ModelDelegate {
-        public EmulationVictor getVictor(VictorAddress address) {
-            return (EmulationVictor) mVictors.get(address);
-        }
+    public class SensorDelegate {
         public EmulationEncoder getEncoder(EncoderAddress address) {
             return (EmulationEncoder) mEncoders.get(address);
+        }
+    }
+
+    public class ActuatorDelegate {
+        /**
+         * @return Messages containing the states of all the actuators
+         */
+        public JSONObject[] getActuatorMessages() {
+            ArrayList messages = new ArrayList();
+
+            Iterator it = mVictors.values().iterator();
+            while (it.hasNext()) {
+                messages.add(((EmulationVictor) it.next()).getActuatorCommand().getCommand());
+            }
+            JSONObject[] result = new JSONObject[messages.size()];
+            messages.toArray(result);
+            return result;
         }
     }
 

@@ -8,7 +8,7 @@ public class ResetActuator : MonoBehaviour, ActuatorType {
 		FindObjectOfType<IOServer>().RegisterActuatorType("reset", this);
 	}
 
-	public void HandleMessage(JSONNode message) {
+	public void HandleMessage(JSONClass message) {
 		JSONClass msgData = (JSONClass) message["data"];
 		Transform robotTransform = GameObject.Find("robot").transform;
 		robotTransform.position = new Vector3(

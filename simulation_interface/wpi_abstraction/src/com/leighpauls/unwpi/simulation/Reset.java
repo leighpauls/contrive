@@ -1,4 +1,4 @@
-package com.leighpauls.simulationactuators;
+package com.leighpauls.unwpi.simulation;
 
 import com.leighpauls.unwpi.simulation.AbstractActuatorCommand;
 import org.json.simple.JSONObject;
@@ -12,7 +12,7 @@ public class Reset extends AbstractActuatorCommand {
         super("reset");
     }
 
-    public JSONObject getCommandData() {
+    protected JSONObject getCommandData() {
         JSONObject cmd = new JSONObject();
         cmd.put("x", new Double(-7.5));
         cmd.put("y", new Double(0.1));

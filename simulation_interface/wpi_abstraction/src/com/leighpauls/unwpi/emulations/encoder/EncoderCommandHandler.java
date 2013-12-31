@@ -8,9 +8,9 @@ import org.json.simple.JSONObject;
  * Implementation for handling encoder commands
  */
 public class EncoderCommandHandler implements SensorCommandHandler {
-    private final SimulationModel.ModelDelegate mModel;
+    private final SimulationModel.SensorDelegate mModel;
 
-    public EncoderCommandHandler(SimulationModel.ModelDelegate model) {
+    public EncoderCommandHandler(SimulationModel.SensorDelegate model) {
         mModel = model;
     }
 

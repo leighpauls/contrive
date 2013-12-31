@@ -19,7 +19,7 @@ public class MotorControllerCommand extends AbstractActuatorCommand {
         mPower = power;
     }
 
-    public JSONObject getCommandData() {
+    protected JSONObject getCommandData() {
         JSONObject cmdData = new JSONObject();
         cmdData.put("slot", Integer.valueOf(mSlot));
         cmdData.put("channel", Integer.valueOf(mChannel));

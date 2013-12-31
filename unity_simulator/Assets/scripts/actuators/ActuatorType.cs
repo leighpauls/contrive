@@ -3,6 +3,6 @@ using System.Collections;
 using SimpleJSON;
 
 public interface ActuatorType {
-	void HandleMessage(JSONNode message);
+	void HandleMessage(JSONClass message);
 	void Reset();
 }

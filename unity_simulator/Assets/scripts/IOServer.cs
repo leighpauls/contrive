@@ -12,14 +12,15 @@ public class IOServer : MonoBehaviour {
 
 	private Thread thread;
 
-	private Semaphore actuatorAvailable, actuatorEmpty;
-	private string lastLine;
-
-	private Mutex sensorAvailable;
-	private string sensorOutput;
+	private byte[] inboundBuffer = new byte[1024*10];
+	private Socket clientSocket;
+	private Semaphore clientNeeded;
 
 	private Dictionary<string, ActuatorType> actuatorTypes;
 	private Dictionary<string, SensorType> sensorTypes;
+
+	private JSONClass endOfSensorsMessage;
+	private const string endOfActuatorsType = "end_of_actuators";
 
 	public enum ControlMode {
 		Disabled,
@@ -32,46 +33,75 @@ public class IOServer : MonoBehaviour {
 	// Use this for initialization
 	void Start () {
 		Application.runInBackground = true;
-		actuatorAvailable = new Semaphore(0, 1);
-		actuatorEmpty = new Semaphore(1, 1);
-
-		sensorAvailable = new Mutex();
-		sensorOutput = null;
+	
+		thread = new Thread(new ThreadStart(this.ServerThread));
+		clientNeeded = new Semaphore(1, 1);
 
 		CurControlMode = ControlMode.Teleop;
 		actuatorTypes = new Dictionary<string, ActuatorType>();
 		sensorTypes = new Dictionary<string, SensorType>();
 
-		thread = new Thread(new ThreadStart(this.ServerThread));
+		endOfSensorsMessage = new JSONClass();
+		endOfSensorsMessage.Add("type", "end_of_sensors");
+		endOfSensorsMessage.Add("data", new JSONClass());
+
 		thread.Start();
 	}
 
-	void Update() {
-		// check for actuator signals
-		if (actuatorAvailable.WaitOne(0)) {
-			string[] lines = lastLine.Split("\n".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
-			foreach (var line in lines) {
-				JSONNode message = JSON.Parse(line);
-				string messageType = message["type"];
-				actuatorTypes[messageType].HandleMessage(message);
-			}
-			actuatorEmpty.Release();
+	void FixedUpdate() {
+		if (clientSocket == null) {
+			return;
 		}
 
-		// send back the sensor signals
-		string sensorJson = "";
-		foreach (KeyValuePair<string, SensorType> entry in sensorTypes) {
-			JSONNode[] states = entry.Value.GetSensorStates();
-			foreach (var state in states) {
-				JSONClass command = new JSONClass();
-				command.Add("data", state);
-				command.Add("type", entry.Key);
-				sensorJson += command.ToString() + "\n";
+		try {
+			// send the sensor states to the user code
+			string outboundBufferString = "";
+			foreach (var entry in sensorTypes) {
+				string typeName = entry.Key;
+				JSONClass[] states = entry.Value.GetSensorStates();
+				foreach (var state in states) {
+					JSONClass msg = new JSONClass();
+					msg.Add("type", typeName);
+					msg.Add("data", state);
+					outboundBufferString += msg.ToString() + "\n";
+				}
 			}
+			outboundBufferString += endOfSensorsMessage.ToString() + "\n";
+			clientSocket.Send(Encoding.ASCII.GetBytes(outboundBufferString));
+
+			// wait for all of the actuator messages
+			List<JSONClass> receivedActuatorMessages = new List<JSONClass>();
+			bool endReached = false;
+			while (!endReached) {
+				int numBytes = clientSocket.Receive(inboundBuffer);
+				string[] lines = Encoding.ASCII
+					.GetString(inboundBuffer, 0, numBytes)
+					.Split("\n".ToCharArray(), System.StringSplitOptions.RemoveEmptyEntries);
+				foreach (string line in lines) {
+					JSONClass message = (JSONClass) JSON.Parse(line);
+					if (message == null) {
+						continue;
+					}
+					if (endOfActuatorsType.Equals(message["type"].Value)) {
+						endReached = true;
+						break;
+					} else {
+						receivedActuatorMessages.Add(message);
+					}
+				}
+			}
+
+			// dispatch all of the actuator messages
+			foreach (JSONClass msg in receivedActuatorMessages) {
+				actuatorTypes[msg["type"]].HandleMessage(msg);
+			}
+		} catch (SocketException e) {
+			// the socket has disconnected or timed out
+			Debug.Log("Client disconnected or timed out: " + e.Message);
+			clientSocket.Close();
+			clientSocket = null;
+			clientNeeded.Release();
 		}
-		sensorAvailable.WaitOne();
-		sensorOutput = sensorJson;
-		sensorAvailable.ReleaseMutex();
 	}
 
 	void ServerThread() {
@@ -81,36 +111,14 @@ public class IOServer : MonoBehaviour {
 		listener.Bind(new IPEndPoint(Dns.GetHostEntry(Dns.GetHostName()).AddressList[0], 54321));
 		listener.Listen(0);
 		Debug.Log("Opened Listener");
-
-		byte[] bytes = new byte[1024*10];
-
+		
 		while (true) {
-			Socket client = listener.Accept();
+			clientNeeded.WaitOne();
+			Socket soc = listener.Accept();
+			// soc.ReceiveTimeout = 1000;
+			// soc.SendTimeout = 1000;
 			Debug.Log("Accepted Client");
-			CurControlMode = ControlMode.Auto;
-			while(true) {
-				// recive some data
-				int bytesReceived = client.Receive(bytes);
-				if (bytesReceived == 0) {
-					break;
-				}
-				string strData = Encoding.ASCII.GetString(bytes, 0, bytesReceived);
-				actuatorEmpty.WaitOne();
-				lastLine = strData;
-				actuatorAvailable.Release();
-
-				// see if there's any data to send
-				sensorAvailable.WaitOne();
-				if (sensorOutput != null) {
-					client.Send(Encoding.ASCII.GetBytes(sensorOutput));
-					sensorOutput = null;
-				}
-				sensorAvailable.ReleaseMutex();
-			}
-
-			Debug.Log("Socket disconnected");
-			client.Close();
-			CurControlMode = ControlMode.Teleop;
+			clientSocket = soc;
 		}
 	}
 
