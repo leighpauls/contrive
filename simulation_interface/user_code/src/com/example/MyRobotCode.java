@@ -26,6 +26,7 @@ public class MyRobotCode implements IterativeRobotInterface {
         mRightDriveEncoder = ContrivedEncoder.getInstance(3, 4);
 
         mGyro = ContrivedGyro.getInstance(1);
+        mGyro.setSensitivity(0.007);
     }
 
     public void robotInit() {}
@@ -38,9 +39,8 @@ public class MyRobotCode implements IterativeRobotInterface {
 
     public void autonomousInit() {}
     public void autonomousPeriodic() {
-        mLeftDriveVictor.set(2-mLeftDriveEncoder.getDistance());
-        mRightDriveVictor.set(2-mRightDriveEncoder.getDistance());
-        System.out.println(mGyro.getAngle());
+        mLeftDriveVictor.set((2-mLeftDriveEncoder.getDistance()) * 0.5);
+        mRightDriveVictor.set(4-mRightDriveEncoder.getDistance());
     }
 
     public void teleopInit() {}

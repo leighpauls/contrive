@@ -11,7 +11,7 @@ import org.contrived.unwpi.simulation.SimulationServer;
 public class SimulationRuntime {
 
     private static final int DISABLED_CYCLES = 10;
-    private static final int AUTON_CYCLES = 100;
+    private static final int AUTON_CYCLES = 500;
 
     public static void main(String[] args) {
         System.out.println("Simulation starting");

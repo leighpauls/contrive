@@ -9,7 +9,7 @@ public class EmulationGyro {
 
     public EmulationGyro() {
         mAngle = 0;
-        mSensitivity = 0;
+        mSensitivity = 0.007;
     }
 
     public EmulationGyroDelegate getInstance() {
@@ -17,7 +17,7 @@ public class EmulationGyro {
     }
 
     public void updateSensor(double voltage, double deltaTime) {
-        mAngle += mSensitivity * voltage * deltaTime;
+        mAngle += voltage * deltaTime / mSensitivity;
     }
 
     public class EmulationGyroDelegate extends ContrivedGyro {

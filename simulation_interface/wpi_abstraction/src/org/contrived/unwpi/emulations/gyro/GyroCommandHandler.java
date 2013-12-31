@@ -24,7 +24,7 @@ public class GyroCommandHandler implements SensorCommandHandler {
         int slot = Integer.parseInt((String)data.get("slot"));
         int channel = Integer.parseInt((String)data.get("channel"));
         double voltage = Double.parseDouble((String)data.get("voltage"));
-        double deltaTime = Double.parseDouble((String)data.get("time"));
+        double deltaTime = Double.parseDouble((String)data.get("delta_time"));
 
         AnalogAddress address = new AnalogAddress(slot, channel);
         EmulationGyro gyro = mSensorDelegate.getGyro(address);
