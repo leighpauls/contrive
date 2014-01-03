@@ -2,12 +2,19 @@
 using System.Collections;
 
 public class MotorSet : MonoBehaviour {
-	const float FREE_SPIN_SPEED = 3.75f;
-	const float STALL_FORCE = 57f * 2f;
+	// high gear
+	const float FREE_SPIN_SPEED = 4.87f;
+	const float STALL_FORCE = 43.8f * 2f;
+
+	// low gear
+	// const float FREE_SPIN_SPEED = 4.87f * 6f / 16f;
+	// const float STALL_FORCE = 42f * 2f * 16f / 6f;
+
+
 	const float DIST_PER_TICK = 0.01f;
 
-	const float U_STATIC_FRICTION = 1.2f;
-	const float U_DYNAMIC_FRICTION = 0.5f;
+	const float U_STATIC_FRICTION = 0.8f;
+	const float U_DYNAMIC_FRICTION = 0.4f;
 
 	const float MIN_SLIP_VELOCITY = 0.05f;
 	
@@ -63,8 +70,7 @@ public class MotorSet : MonoBehaviour {
 				sideSlipMagnitude += Mathf.Abs(hit.sidewaysSlip) * hit.force;
 
 				normalForces[i] = hit.force;
-				sideSlips[i] = hit.sidewaysSlip;
-				Debug.DrawRay(hit.point, hit.normal * hit.force * 0.01f, Color.blue, 0, false);
+				sideSlips[i] = hit.sidewaysSlip;;
 			} else {
 				staticForceContributions[i] = 0f;
 				normalForces[i] = 0f;
@@ -132,10 +138,6 @@ public class MotorSet : MonoBehaviour {
 				Vector3 frictionForce = -slipVelocity.normalized * normalForce * U_DYNAMIC_FRICTION;
 				wheel.rigidbody.AddForce(frictionForce);
 
-				if (i == 2) {
-					Debug.DrawRay(wheel.transform.position, frictionForce * 0.2f, Color.red, 0, false);
-					Debug.DrawRay(wheel.transform.position, slipVelocity, Color.black, 0, false);
-				}
 			}
 		} else {
 			encoderSpeed = freeRollWheelSpeed;
@@ -151,9 +153,6 @@ public class MotorSet : MonoBehaviour {
 						Debug.Log(maxForwardStaticForce);
 					}
 					wheel.rigidbody.AddForce(staticFrictionForce * transform.forward);
-					if (i == 2) {
-						Debug.DrawRay(wheel.transform.position, transform.forward * staticFrictionForce * 0.2f, Color.green, 0, false);
-					}
 				}
 			}
 		}
@@ -191,19 +190,8 @@ public class MotorSet : MonoBehaviour {
 		EncoderPeriod = 0.00001f;
 		EncoderMovingForward = true;
 	}
-	public void ResetActuator() {
-		foreach (var wheel in wheels) {
-			wheel.motorTorque = 0f;
-			wheel.brakeTorque = Mathf.Infinity;
-		}
-	}
 
-	void Update() {
-		Debug.DrawRay(
-			transform.position,
-			transform.forward * encoderSpeed,
-			Color.white,
-			0,
-			false);
+	public void ResetActuator() {
+		slipping = false;
 	}
 }

@@ -28,6 +28,6 @@ public class RobotBuilder : MonoBehaviour {
 			}
 		}
 
-		rigidbody.centerOfMass = new Vector3(0f, 0.15f, -0.2f);
+		rigidbody.centerOfMass = new Vector3(0f, 0.15f, -0.1f);
 	}
 }
