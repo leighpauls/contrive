@@ -1,5 +1,5 @@
 * Contrive FRC Driving Simulator
-Contrive is a simulation environment designed for testing your autonomous mode driving patterns.
+Contrive is a simulation environment designed for testing your autonomous mode driving patterns. It allows FRC programmers to run their code inside of a physically realistic simulated environment, then with the push of a button, test the exact same code on a real robot.
 
 Please note that most of the aspects of the project that are currently hard-coded (the robot configuration, the field, the java project linking) are planned to be made configurable by the end user. Contrive is currently in development, and should not be used for any real testing at this time. Check back later for releases and tutorials on how to use Contrive to simulate your robot!
 
@@ -19,6 +19,23 @@ You *should* use Contrive to:
 - Verify that your newly written code does approximately what it should do before trying it on a real robot (eg. won't unexpectedly turn left and run you over)
 - Sanity check any code you've written while the robot is unavailable
 - Teach the basics of control theory and robot programming to new programmers
+
+** Instructions
+These instructions are for the curious and for anyone who wants to help with Contrive's development. When contrive is ready to release to the public, its interface will be a simple button and configuration interface within your current C++ or Java IDE, similar to how the current FRC IDE plugins work.
+
+Contrive has 2 parts:
+- The unity simulator, written in Unity/C#, which handles the actual physical simulation
+- The simulation interface, which provides a WPIlibJ-like interface to the user's robot code, and handles the details of communicating with the simulation in simualtion mode, and with the actual robot components when running on the real robot.
+
+Open the Unity project in /unity_simulator. Run "simple_scene". You can control the robot using the arrow keys, or using a gamepad plugged into your computer.
+
+Open the IntelliJ IDEA project in the /simulation_interface directory. Runnning the "Run Simulation" run configuration will launch run your code in simulation. Make sure that the unity simulator is running, and the simulation interface will connect to it over s socket. The unity simulator currently only supports one instance of the simulation interface at a time.
+
+Code for controlling a specific robot is currently in the /simulation_interface/MyRobot/ folder. It is important to *not* use WPI classes, as they will break when not run on a CRIO. Use the Contrived* classes instead, which are currently located in the /simulation_interface/wpi_abstraction submodule, in the org.contrived.unwpi.emulations package.
+
+The Contrived* are built to mirror WPI's classes as closely as possible. When running your code on the robot, these simply wrap the WPI classes. When running in simuation, the Contrived* classes emulate their WPI counterparts by communicating with virtual actuators and sensors in the unity simulation.
+
+The hardware configuration (ie, what virtual motors/sensors are plugged in where) is currently hard-coded, but configurability for these options is under development.
 
 ** Why Contrive?
 Contrive is a project that's been in the back of my mind for the better part of a decade now. While the technical goals are fairly simple and straight forward, the rational for the design decisions and motivation for the project are much more involved.
