@@ -12,7 +12,7 @@ public class TeleopControl : MonoBehaviour {
 	}
 
 	// Update is called once per frame
-	void Update () {
+	void FixedUpdate () {
 		// only run on teleop mode
 		if (ioServer.CurControlMode != IOServer.ControlMode.Teleop) {
 			return;

@@ -2,20 +2,188 @@
 using System.Collections;
 
 public class MotorSet : MonoBehaviour {
-	const float freeSpinSpeed = 3.75f;
-	const float stallForce = 718f * 0.9f;
-	const float distPerTick = 0.01f;
+	const float FREE_SPIN_SPEED = 3.75f;
+	const float STALL_FORCE = 57f * 2f;
+	const float DIST_PER_TICK = 0.01f;
 
+	const float U_STATIC_FRICTION = 1.2f;
+	const float U_DYNAMIC_FRICTION = 0.5f;
+
+	const float MIN_SLIP_VELOCITY = 0.05f;
+	
 	WheelCollider[] wheels;
 	public float EncoderPosition { get; private set; }
 	public float EncoderPeriod { get; private set; }
 	public bool EncoderMovingForward { get; private set; }
+
+	private bool slipping = false;
+	float encoderSpeed = 0f;
 
 	// Use this for initialization
 	void Start () {
 		wheels = GetComponentsInChildren<WheelCollider>();
 		ResetSensor();
 		ResetActuator();
+	}
+
+	public void ApplyVoltage(float voltage) {
+		// find the maximum forward force that can be applied by each wheel
+		float maxForwardStaticForce = 0f;
+		float[] staticForceContributions = new float[wheels.Length];
+
+		// average forward speed of grounded wheels
+		float freeRollWheelSpeed = 0f;
+		// normal-force-weighted average of grounded wheels' sideways speed magnitude
+		float sideSlipMagnitude = 0f;
+
+		float netDownForce = 0f;
+		int numTouching = 0;
+
+		float[] normalForces = new float[wheels.Length];
+		float[] sideSlips = new float[wheels.Length];
+
+		for (int i = 0; i < wheels.Length; ++i) {
+			WheelCollider wheel = wheels[i];
+			WheelHit hit;
+			if (wheel.GetGroundHit(out hit)) {
+				numTouching++;
+				netDownForce += hit.force;
+
+				float sidewaysStaticForce = hit.force * wheel.sidewaysFriction.extremumValue * (hit.sidewaysSlip / wheel.sidewaysFriction.extremumSlip);
+				if (hit.sidewaysSlip > wheel.sidewaysFriction.extremumSlip) {
+					sidewaysStaticForce = 0f;
+				}
+
+				float staticFrictionMagnitude = hit.force * U_STATIC_FRICTION;
+				float staticForwardForce = Mathf.Sqrt(Mathf.Max(0f, staticFrictionMagnitude*staticFrictionMagnitude - sidewaysStaticForce*sidewaysStaticForce));
+				maxForwardStaticForce += staticForwardForce;
+				staticForceContributions[i] = staticForwardForce;
+
+				freeRollWheelSpeed += Vector3.Dot(wheel.rigidbody.velocity, transform.forward);
+				sideSlipMagnitude += Mathf.Abs(hit.sidewaysSlip) * hit.force;
+
+				normalForces[i] = hit.force;
+				sideSlips[i] = hit.sidewaysSlip;
+				Debug.DrawRay(hit.point, hit.normal * hit.force * 0.01f, Color.blue, 0, false);
+			} else {
+				staticForceContributions[i] = 0f;
+				normalForces[i] = 0f;
+				sideSlips[i] = 0f;
+			}
+		}
+		if (numTouching > 0) {
+			freeRollWheelSpeed = freeRollWheelSpeed / numTouching;
+			sideSlipMagnitude = sideSlipMagnitude / netDownForce;
+		} else {
+			// TODO: set the encoder speed
+			slipping = true;
+			return;
+		}
+
+		// how much force would the motor apply if in the static range
+		float staticForceInput = STALL_FORCE * (voltage - freeRollWheelSpeed / FREE_SPIN_SPEED);
+
+		float forwardSlipSpeed = 0f;;
+		// update the slipping state
+		if (!slipping) {
+			if (Mathf.Abs(staticForceInput) > maxForwardStaticForce || sideSlipMagnitude >= MIN_SLIP_VELOCITY) {
+				slipping = true;
+			}
+		}
+
+		if (slipping) {
+			// resolve how much dynamic forward force each wheel uses
+			WheelSlipFunction slipFunction = new WheelSlipFunction {
+				normalForce = normalForces,
+				sideSlip = sideSlips,
+				uDynamic = U_DYNAMIC_FRICTION,
+				stallForce = STALL_FORCE,
+				axelSpeed = freeRollWheelSpeed,
+				freeSpinSpeed = FREE_SPIN_SPEED,
+				voltage = voltage
+			};
+		
+			float slipDirection = Mathf.Sign(voltage - freeRollWheelSpeed / FREE_SPIN_SPEED);
+			forwardSlipSpeed = NumericalSolver.Solve(
+				slipFunction,
+				Mathf.Min(0f, slipDirection * FREE_SPIN_SPEED),
+				Mathf.Max(0f, slipDirection * FREE_SPIN_SPEED),
+				10,
+				0.001f);
+			if (Mathf.Abs(forwardSlipSpeed) < MIN_SLIP_VELOCITY && sideSlipMagnitude < MIN_SLIP_VELOCITY) {
+				slipping = false;
+			}
+		}
+
+		// update the force applications
+		if (slipping) {
+			encoderSpeed = forwardSlipSpeed + freeRollWheelSpeed;
+
+			for (int i = 0; i < wheels.Length; ++i) {
+				WheelCollider wheel = wheels[i];
+				WheelFrictionCurve friction = wheel.sidewaysFriction;
+				friction.stiffness = 0f;
+				wheel.sidewaysFriction = friction;
+
+				float sideSlip = sideSlips[i];
+				float normalForce = normalForces[i];
+
+				Vector3 slipVelocity = -forwardSlipSpeed * transform.forward + sideSlip * transform.right;
+				Vector3 frictionForce = -slipVelocity.normalized * normalForce * U_DYNAMIC_FRICTION;
+				wheel.rigidbody.AddForce(frictionForce);
+
+				if (i == 2) {
+					Debug.DrawRay(wheel.transform.position, frictionForce * 0.2f, Color.red, 0, false);
+					Debug.DrawRay(wheel.transform.position, slipVelocity, Color.black, 0, false);
+				}
+			}
+		} else {
+			encoderSpeed = freeRollWheelSpeed;
+			for (int i = 0; i < wheels.Length; ++i) {
+				WheelCollider wheel = wheels[i];
+				WheelFrictionCurve friction = wheel.sidewaysFriction;
+				friction.stiffness = 100f;
+				wheel.sidewaysFriction = friction;;
+
+				if (!Mathf.Approximately(maxForwardStaticForce, 0f)) {
+					float staticFrictionForce = (staticForceContributions[i] / maxForwardStaticForce) * staticForceInput;
+					if (float.IsNaN(staticFrictionForce)) {
+						Debug.Log(maxForwardStaticForce);
+					}
+					wheel.rigidbody.AddForce(staticFrictionForce * transform.forward);
+					if (i == 2) {
+						Debug.DrawRay(wheel.transform.position, transform.forward * staticFrictionForce * 0.2f, Color.green, 0, false);
+					}
+				}
+			}
+		}
+	}
+
+	class WheelSlipFunction : NumericalSolver.FunctionToSolve {
+		public float[] normalForce, sideSlip;
+		public float uDynamic, stallForce, axelSpeed, freeSpinSpeed, voltage;
+
+		public float function(float fwdSlip) {
+			float res = stallForce * ((fwdSlip + axelSpeed) / freeSpinSpeed - voltage);
+
+			for (int i = 0; i < normalForce.Length; ++i) {
+				res += uDynamic * normalForce[i] * Mathf.Cos(Mathf.Atan2(sideSlip[i], fwdSlip));
+			}
+
+			return res;
+		}
+	}
+
+	void FixedUpdate() {
+		EncoderPosition += encoderSpeed * Time.fixedDeltaTime;
+		if (Mathf.Approximately(encoderSpeed, 0f)) {
+			// it hasn't moved at all this frame
+			EncoderPeriod += Time.fixedDeltaTime;
+		} else {
+			EncoderMovingForward = encoderSpeed > 0f;
+			EncoderPeriod = Mathf.Abs(DIST_PER_TICK / encoderSpeed);
+		}
+		
 	}
 
 	public void ResetSensor() {
@@ -30,96 +198,12 @@ public class MotorSet : MonoBehaviour {
 		}
 	}
 
-	private float ApproxWheelSpeed { get {
-			float wheelSpeed = 0f;
-			float allWheelSpeed = 0f;
-			int numWheelsOnGround = 0;
-			foreach (var wheel in wheels) {
-				WheelHit hit;
-				float speed = wheel.rpm * 2 * Mathf.PI * (1f / 60f) * wheel.radius;
-				if (wheel.GetGroundHit(out hit)) {
-					// If I can, only count wheels that are on the ground
-					wheelSpeed += speed;
-					numWheelsOnGround += 1;
-				}
-				allWheelSpeed += speed;
-			}
-			
-			if (numWheelsOnGround > 0) {
-				// only count wheels resisted by ground forces
-				wheelSpeed = wheelSpeed / numWheelsOnGround;
-			} else {
-				// wheels are freespinning in the air, so count them all
-				wheelSpeed = allWheelSpeed / wheels.Length;
-			}
-			return wheelSpeed;
-		}
-	}
-
-	private int WheelsOnGround { get {
-			int res = 0;
-			foreach (var wheel in wheels) {
-				WheelHit hit;
-				if (wheel.GetGroundHit(out hit)) {
-					res++;
-				}
-			}
-			return res;
-		}
-	}
-
-	public void ApplyVoltage(float voltage) {
-		float wheelSpeed = ApproxWheelSpeed;
-
-		float forceInput = stallForce * (voltage - wheelSpeed / freeSpinSpeed);
-
-		int wheelsOnGround = WheelsOnGround;
-		if (wheelsOnGround == 0) {
-			wheelsOnGround = wheels.Length;
-		}
-
-		foreach (var wheel in wheels) {
-			float torque = (forceInput * wheel.radius) / wheelsOnGround;
-			wheel.brakeTorque = 0f;
-			wheel.motorTorque = torque;
-		}
-	}
-
 	void Update() {
-		float wheelSpeed = ApproxWheelSpeed;
-
 		Debug.DrawRay(
 			transform.position,
-			transform.rotation * Vector3.forward * wheelSpeed,
+			transform.forward * encoderSpeed,
 			Color.white,
 			0,
 			false);
-		foreach (var wheelCollider in wheels) {
-			WheelHit hit;
-			if (wheelCollider.GetGroundHit(out hit)) {
-				Debug.DrawRay(
-					wheelCollider.transform.position + Vector3.up * 0.1f,
-					this.transform.rotation * Vector3.forward * hit.forwardSlip,
-					(Mathf.Abs(hit.forwardSlip) > wheelCollider.forwardFriction.asymptoteSlip ? Color.red : Color.green),
-					0,
-					false);
-				Debug.DrawRay(
-					wheelCollider.transform.position + Vector3.up * 0.1f,
-					this.transform.rotation * Vector3.right * hit.sidewaysSlip,
-					(Mathf.Abs(hit.sidewaysSlip) > wheelCollider.sidewaysFriction.asymptoteSlip ? Color.red : Color.green),
-					0,
-					false);
-			}
-		}
-		
-		EncoderPosition += wheelSpeed * Time.deltaTime;
-		if (Mathf.Approximately(wheelSpeed, 0f)) {
-			// it hasn't moved at all this frame
-			EncoderPeriod += Time.deltaTime;
-		} else {
-			EncoderMovingForward = wheelSpeed > 0f;
-			EncoderPeriod = Mathf.Abs(distPerTick / wheelSpeed);
-		}
-
 	}
 }

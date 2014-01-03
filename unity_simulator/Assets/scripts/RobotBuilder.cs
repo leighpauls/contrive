@@ -12,7 +12,7 @@ public class RobotBuilder : MonoBehaviour {
 
 		Vector3[] offsets = new Vector3[] {
 			new Vector3(0f, 0.015f, 0.4f),
-			new Vector3(0f, 0.01f, 0f),
+			new Vector3(0f, 0.005f, 0f),
 			new Vector3(0f, 0.015f, -0.4f)
 		};
 
@@ -27,5 +27,7 @@ public class RobotBuilder : MonoBehaviour {
 				newWheel.GetComponent<ConfigurableJoint>().connectedBody = this.rigidbody;
 			}
 		}
+
+		rigidbody.centerOfMass = new Vector3(0f, 0.15f, -0.2f);
 	}
 }
