@@ -34,6 +34,7 @@ At the most superficial level, it's designed to save me time and headaches while
 In a simulated environment, all of these types of issues won't happen, and the turn-around time between test runs falls from around 2 or 3 minutes to a few seconds. If a robot's autonomous driving programming work is 80% code logic and 20% numerical tuning, then I should be able to test and iterate for the 80% quickly in simulation, and only need to use a real robot for the 20%.
 
 *** Motivation
+TODO: make this a blog post instead of a readme
 My motivation and design goals for Contrive are very deeply rooted in my personal experience in FRC, and my beliefs of what FRC is and what it should be. As such, I think an overview of my FRC story should accompany the design rational of Contrive.
 
 My FRC career began as a grade 11 on team 1114 (Simbotics) in 2008. By that point I had already been teaching myself to program for about 5 years, but never before had I taken on a project with the complexity and performance expectations of programming Simbotics' robot. Fortunately, Simbotics had pleanty of resources to help the programming team create something awesome. Some of those resources include, in ascending order of importance:
