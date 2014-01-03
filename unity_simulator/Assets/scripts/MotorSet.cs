@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// Represets a collection of wheels mechancially joined (by gears, chain, etc.) such that they
+/// are all controlled by the same set of motors, and are constrained to the same speed.
+/// </summary>
 public class MotorSet : MonoBehaviour {
 	// high gear
 	const float FREE_SPIN_SPEED = 4.87f;

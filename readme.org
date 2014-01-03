@@ -1,0 +1,82 @@
+* Contrive FRC Driving Simulator
+Contrive is a simulation environment designed for testing your autonomous mode driving patterns.
+
+Please note that most of the aspects of the project that are currently hard-coded (the robot configuration, the field, the java project linking) are planned to be made configurable by the end user. Contrive is currently in development, and should not be used for any real testing at this time. Check back later for releases and tutorials on how to use Contrive to simulate your robot!
+
+Contrive is *not* designed to be any of the following:
+- A full replacement for testing on a real robot
+- A full replacement for testing that robot on a real field
+- A way to try/study FRC game strategy
+- A place to build or prototype mechanical robot features
+- A system for tuning PID loops without a robot
+- A way to test logic for things other than driving
+
+Contrive has been designed specifically to simulate the driving physics of common skid-steer FRC robots. It's primary feature is the use of a dry friction model applied to multiple wheels mechanically linked by chain, belts, or gears. See /unity_simulator/Assets/scripts/MotorSet.cs for the implementation of this model.
+
+You *should* use Contrive to:
+- Implement and test robot driving logic before a full field/robot is available
+- Provide simplified signaling to non-driving logic parts of the code, so that the driving parts will still work.
+- Verify that your newly written code does approximately what it should do before trying it on a real robot (eg. won't unexpectedly turn left and run you over)
+- Sanity check any code you've written while the robot is unavailable
+- Teach the basics of control theory and robot programming to new programmers
+
+** Why Contrive?
+Contrive is a project that's been in the back of my mind for the better part of a decade now. While the technical goals are fairly simple and straight forward, the rational for the design decisions and motivation for the project are much more involved.
+
+*** Technical Goals
+At the most superficial level, it's designed to save me time and headaches while iterating on the logic of the robot's autonomous mode. I've found that while writing and testing robot code, the majority of my time is consumed by things that don't ultimately contribute to a better autonomous mode. Things like:
+- Physically resetting the robot/field elements
+- Trying to eliminate variables specific to my bad test environment (eg. Is this floor similar enough to the field carpet?)
+- Tracking down bugs related to the test robot (usually electrical issues)
+- The test robot slowly falling apart
+- Trying to replicate an error scenario that only happens intermittently
+
+In a simulated environment, all of these types of issues won't happen, and the turn-around time between test runs falls from around 2 or 3 minutes to a few seconds. If a robot's autonomous driving programming work is 80% code logic and 20% numerical tuning, then I should be able to test and iterate for the 80% quickly in simulation, and only need to use a real robot for the 20%.
+
+*** Motivation
+My motivation and design goals for Contrive are very deeply rooted in my personal experience in FRC, and my beliefs of what FRC is and what it should be. As such, I think an overview of my FRC story should accompany the design rational of Contrive.
+
+My FRC career began as a grade 11 on team 1114 (Simbotics) in 2008. By that point I had already been teaching myself to program for about 5 years, but never before had I taken on a project with the complexity and performance expectations of programming Simbotics' robot. Fortunately, Simbotics had pleanty of resources to help the programming team create something awesome. Some of those resources include, in ascending order of importance:
+- Enough funding to fix/replace the things we broke
+- A practice field, available every day
+- Season-long access to a simbot-calibur robot drive base with a controll system in working order, and people to repair it
+- A talented mentor who committed *insane* amounts of time during build season (thanks Mike!)
+
+That season, we created something amazing. Back then I might have quantified the experience with points scored or blue bannars won, but recently I've been able to appriciate that the greater rewards of that season can't be hung up on a wall. That season made me tackle challenges that I was likely to fail at, and showed me how to keep going when I did. That season showed me how to work myself into the ground, then gladly do it again the next day. Most importantly, that season took my mere fasination with technology, and transformed it into a passion for creation and engineering, a passion which has already provided dividends in my yet short engineering career so far.
+
+I remained a student of 1114 in 2009, and returned as a mentor in 2010, but the motivation for writing Contrive really took off in 2011.
+
+In late 2010, a few of my univeristy classmates and I got wind of a local Highschool trying to get an FRC team started. Partly motivated by the thrill of building a team from the ground up, and partly looking forward to a shorter commute to robotics, we helped found team 3683 (Team Dave) for a 2011 rookie season. The University of Waterloo Mechatronics Engineering program was probably one of the most densely packed places of FRC alumni experience, so how hard could it be?
+
+*Very Hard*.
+
+We had an exteremely solid technical mentor base, but lacked the organizational, sponsorship, and bugetary chops that we alumni-turned-mentors had taken for granted on on our alma mater teams. You can argue the merits and fairness of FRC sponsorship and have vs. have-not teams in FRC, but debating isn't going to help any students. The bottom line was that we knew exactly how amazing and inspiring an FRC season can be, but failed to re-create the sheer magnitude of that experience for our own students.
+
+I don't mean that to be harsh. "Success" for a rookie team is simply existing long enough to see a second season, and Team Dave did far more than that. That rookie season served to show that we'd need a lot more than mentors with technical ability to hold a candle to the experience that 1114 provide's its students.
+
+Today, as Team Dave enter's its 4th build season, we're getting better and better at pushing these limiting factors. We have relationships with repeat sponsors, we're communicating and orginizing our efforts more efficently, we have more students, and those students are getting more experienced, and more inspired. And while I could go on about where we're making progress, like any good engineer, I'm far more interested in where we arn't making progress yet.
+
+The area that's still stuck in the mud is getting students working on the robot code. To compare against the list of resources for programming I mentioned that 1114 had, Team Dave has:
+- Comparibly limited funding, broken things are more burdensome to replace
+- No full practice field locally, we need to drive 2 hours to use Simbotics' field for real testing
+- Inconsistant access to a kitbot, repairs uncertain
+- A mentor trying to balance classes with FRC
+
+Let's explore these restrictions in terms of their impact on a student identical to my grade 11 self on Team Dave, and myself as a mentor.
+
+Progamming errors can be chaotic in nature, a trivial missing decimal in code can make a robot drive at 100% power into a brick wall, racking up $1000 in damaged robot electronics isn't hard to do to way. When budgets are tight, this means that the mentor needs to be around when the student is writing/testing code, and the mentor should have some level of confidence that this kind of damage won't happen. On nice open spaces with high traction floors and right-angle walls, like a practice field, these assurances are pretty easy to make, but when you don't have a field you're forced to test in more cramped hallways, shops, and classrooms. The more cramped and complex the room, the more restriction the mentor has to place on what the student does. 
+
+From a programmer's perspective, it's often hard to tell the difference between mechanical failure and bugs caused by new developments in the code. As the testing robot platform gets less reliable, the amount of time and effort required to develop a given feature grows disproportionately, especially for an unexperienced student. Programming is an iterative process by nature, "try it, then observe how it doesn't work" is almost always the fastest way to get code working. If the kitbot is to stop working, and no mehanical help is available to fix it immediately, that usually means the programming student can't make any more progress. On top of that, if the performance of that kitbot differs too greatly from what the drive of the competition bot will be, then any work done on the kitbot can be almost worthless.
+
+The result of these restrictions has been that the bulk of the work can't be done on the code until the practice/competition bot is done, which dosn't happen until around week 4 or 5 if your team is very good, and dosn't happen until your first regional if your team isn't. On Team Dave, the result has been that I don't have meaningful work to give to the students early on in the build season, which means they lose interest (could you blame them?). Then, when we've only got 1 week to actually get the code working, the only way it's going to get done on time is if I do it myself. A mentor writing the code isn't terribly inspiring, but compared to the robot not working at all, it's the lessor of two evils.
+
+I've seen other teams in this exact scenario, and the lucky ones usually have the same solution. The unlucky ones don't have mentors who can crank out and test teleop code and an autonomous mode in 2 days, and just don't have a working robot. The very unlucky teams don't have programming mentors at all, and the responsibility falls to one unlucky student. Since most of the team dosn't understand why software does or doesn't work, this puts that student in an impossible scenario with huge amounts of pressure and dissapointment directed at them from the rest of the team (it terrible, but could you blame them either?).
+
+So because of these resource retraints the end results on programming range from the lessor of evils, down to outright horrible. While I don't how to get money and practice space to every team in FRC, I can certainly draw upon my experiences, successes, and (most importantly) failures to alieviate the limits imposed by those resources.
+
+*** Problem Analysis
+TODO:
+- where is programming time spent?
+- why is driving is so hard to control? so hard to test?
+- what should a solution look like?
+
