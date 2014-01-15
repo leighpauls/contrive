@@ -27,7 +27,7 @@ public class GyroCommandHandler implements SensorCommandHandler {
         double deltaTime = Double.parseDouble((String)data.get("delta_time"));
 
         AnalogAddress address = new AnalogAddress(slot, channel);
-        EmulationGyro gyro = mSensorDelegate.getGyro(address);
+        ContrivedGyro gyro = mSensorDelegate.getGyro(address);
         gyro.updateSensor(voltage, deltaTime);
     }
 }

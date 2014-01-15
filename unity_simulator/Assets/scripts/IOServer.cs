@@ -50,8 +50,11 @@ public class IOServer : MonoBehaviour {
 
 	void FixedUpdate() {
 		if (clientSocket == null) {
+			CurControlMode = ControlMode.Teleop;
 			return;
 		}
+
+		CurControlMode = ControlMode.Auto;
 
 		try {
 			// send the sensor states to the user code
@@ -115,8 +118,6 @@ public class IOServer : MonoBehaviour {
 		while (true) {
 			clientNeeded.WaitOne();
 			Socket soc = listener.Accept();
-			// soc.ReceiveTimeout = 1000;
-			// soc.SendTimeout = 1000;
 			Debug.Log("Accepted Client");
 			clientSocket = soc;
 		}

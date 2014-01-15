@@ -1,78 +1,98 @@
 package org.contrived.unwpi.emulations.encoder;
 
-import org.contrived.unwpi.InjectionController;
-import org.contrived.unwpi.emulations.addresses.EncoderAddress;
-import org.contrived.unwpi.simulation.SimulationModel;
 import edu.wpi.first.wpilibj.CounterBase;
-import edu.wpi.first.wpilibj.SensorBase;
 
 /**
- * Abstraction layer for {@link edu.wpi.first.wpilibj.Encoder}
+ * Implementation of an emulated encoder
  */
-public abstract class ContrivedEncoder {
-    public static ContrivedEncoder getInstance(
-            int aSlot,
-            int aChannel,
-            int bSlot,
-            int bChannel,
+public class ContrivedEncoder {
+
+    // encoder state
+    private double mPosition;
+    private double mPeriod;
+    private boolean mDirection;
+
+    public ContrivedEncoder() {
+        mPosition = 0;
+        mPeriod = 0;
+        mDirection = true;
+    }
+
+    public ContrivedEncoderDelegate getInstance(
             boolean reverseDirection,
             CounterBase.EncodingType encodingType) {
-        if (InjectionController.isEmulation()) {
-            return SimulationModel.getInstance().getEncoder(
-                    new EncoderAddress(aSlot, aChannel, bSlot, bChannel),
-                    reverseDirection,
-                    encodingType);
-        } else {
-            return new RealEncoder(aSlot, aChannel, bSlot, bChannel, reverseDirection, encodingType);
+        return new ContrivedEncoderDelegate(reverseDirection, encodingType);
+    }
+
+    public void updateSensor(double position, double period, boolean direction) {
+        mPosition = position;
+        mPeriod = period;
+        mDirection = direction;
+    }
+
+    public class ContrivedEncoderDelegate {
+        private boolean mReverseDirection;
+        private double mDistPerPulse;
+        private boolean mStarted;
+        private final int mEncodingScale;
+
+        public ContrivedEncoderDelegate(
+                boolean reverseDirection,
+                CounterBase.EncodingType encodingType) {
+            mReverseDirection = reverseDirection;
+            mDistPerPulse = 1.0;
+            mStarted = false;
+
+            if (encodingType.equals(CounterBase.EncodingType.k1X)) {
+                mEncodingScale = 4;
+            } else if (encodingType.equals(CounterBase.EncodingType.k2X)) {
+                mEncodingScale = 2;
+            } else {
+                mEncodingScale = 1;
+            }
         }
 
+        public void start() {
+            mStarted = true;
+        }
+
+        public void stop() {
+            mStarted = false;
+        }
+        public void reset() {
+            mPosition = 0;
+        }
+        public boolean getStopped() {
+            return !mStarted;
+        }
+
+        public boolean getDirection() {
+            if (!mStarted) {
+                System.err.println("Warning: using an encoder without having stated it");
+            }
+            return mDirection;
+        }
+
+        public double getDistance() {
+            if (!mStarted) {
+                System.err.println("Warning: using an encoder without having stated it");
+            }
+            return mDistPerPulse * mPosition / mEncodingScale * (mReverseDirection ? -1.0 : 1.0);
+        }
+
+        public double getRate() {
+            if (!mStarted) {
+                System.err.println("Warning: using an encoder without having stated it");
+            }
+            return mDistPerPulse / (mEncodingScale * mPeriod) * (mReverseDirection ? -1.0 : 1.0);
+        }
+
+        public void setDistancePerPulse(double distancePerPulse) {
+            mDistPerPulse = distancePerPulse;
+        }
+
+        public void setReverseDirection(boolean reverseDirection) {
+            mReverseDirection = reverseDirection;
+        }
     }
-
-    public static ContrivedEncoder getInstance(
-            int aSlot,
-            int aChannel,
-            int bSlot,
-            int bChannel,
-            boolean reverseDirection) {
-        return getInstance(
-                aSlot,
-                aChannel,
-                bSlot,
-                bChannel,
-                reverseDirection,
-                CounterBase.EncodingType.k4X);
-    }
-
-    public static ContrivedEncoder getInstance(int aSlot, int aChannel, int bSlot, int bChannel) {
-        return getInstance(aSlot, aChannel, bSlot, bChannel, false);
-    }
-
-    public static ContrivedEncoder getInstance(int aChannel, int bChannel, boolean reverseDirection) {
-        return getInstance(
-                SensorBase.getDefaultDigitalModule(),
-                aChannel,
-                SensorBase.getDefaultDigitalModule(),
-                bChannel,
-                reverseDirection);
-    }
-
-    public static ContrivedEncoder getInstance(int aChannel, int bChannel) {
-        return getInstance(aChannel, bChannel, false);
-    }
-
-    // TODO: the rest of these stupid constructors...
-
-
-    public abstract void start();
-    public abstract void stop();
-    public abstract void reset();
-    public abstract boolean getStopped();
-    public abstract boolean getDirection();
-    public abstract double getDistance();
-    public abstract double getRate();
-    public abstract void setDistancePerPulse(double distancePerPulse);
-    public abstract void setReverseDirection(boolean reverseDirection);
-
-    // TODO: stupid built-in PID things
-
 }

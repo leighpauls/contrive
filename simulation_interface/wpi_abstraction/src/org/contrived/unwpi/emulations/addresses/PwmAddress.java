@@ -7,4 +7,8 @@ public class PwmAddress extends AbstractPairAddress {
     public PwmAddress(int slot, int channel) {
         super(slot, channel);
     }
+
+    public PwmAddress(int channel) {
+        this(1, channel);
+    }
 }

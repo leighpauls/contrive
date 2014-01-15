@@ -31,7 +31,7 @@ public class EncoderCommandHandler implements SensorCommandHandler {
         boolean direction = Boolean.parseBoolean((String)data.get("direction"));
 
         EncoderAddress address = new EncoderAddress(aSlot, aChannel, bSlot, bChannel);
-        EmulationEncoder encoder = mModel.getEncoder(address);
+        ContrivedEncoder encoder = mModel.getEncoder(address);
         if (encoder == null) {
             System.out.println("Received command for unknown encoder: " + address);
             return;

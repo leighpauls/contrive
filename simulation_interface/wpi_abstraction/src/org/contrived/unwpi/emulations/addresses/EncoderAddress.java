@@ -13,6 +13,10 @@ public class EncoderAddress {
         mBAddress = new DigitalAddress(bSlot, bChannel);
     }
 
+    public EncoderAddress(int aChannel, int bChannel) {
+        this(1, aChannel, 1, bChannel);
+    }
+
     public int hashCode() {
         return Arrays.hashCode(new int[] { mAAddress.hashCode(), mBAddress.hashCode() });
     }

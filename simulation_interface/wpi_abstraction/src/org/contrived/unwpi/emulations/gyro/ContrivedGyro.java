@@ -1,29 +1,37 @@
 package org.contrived.unwpi.emulations.gyro;
 
-import org.contrived.unwpi.InjectionController;
-import org.contrived.unwpi.emulations.addresses.AnalogAddress;
-import org.contrived.unwpi.simulation.SimulationModel;
-import edu.wpi.first.wpilibj.SensorBase;
-
 /**
- * Abstraction layer ofr {@link edu.wpi.first.wpilibj.Gyro}
+ * Implementation of an emulated gyro
  */
-public abstract class ContrivedGyro {
+public class ContrivedGyro {
+    private double mAngle;
+    private double mSensitivity;
 
-    public static ContrivedGyro getInstance(int slot, int channel) {
-        if (InjectionController.isEmulation()) {
-            return SimulationModel.getInstance().getGyro(new AnalogAddress(slot, channel));
-        } else {
-            return new RealGyro(slot, channel);
+    public ContrivedGyro() {
+        mAngle = 0;
+        mSensitivity = 0.007;
+    }
+
+    
+    public void updateSensor(double voltage, double deltaTime) {
+        mAngle += voltage * deltaTime / mSensitivity;
+    }
+
+    public ContrivedGyroDelegate getInstance() {
+        return new ContrivedGyroDelegate();
+    }
+
+    public class ContrivedGyroDelegate {
+        public void reset() {
+            mAngle = 0;
+        }
+
+        public double getAngle() {
+            return mAngle;
+        }
+
+        public void setSensitivity(double voltsPerDegreePerSecond) {
+            mSensitivity = voltsPerDegreePerSecond;
         }
     }
-
-    public static ContrivedGyro getInstance(int channel) {
-        return getInstance(SensorBase.getDefaultAnalogModule(), channel);
-    }
-
-    public abstract void reset();
-    public abstract double getAngle();
-    public abstract void setSensitivity(double voltsPerDegreePerSecond);
-
 }

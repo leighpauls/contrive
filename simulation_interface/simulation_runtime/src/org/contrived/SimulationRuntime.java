@@ -1,9 +1,10 @@
 package org.contrived;
 
-import com.example.MyRobotCode;
-import org.contrived.unwpi.IterativeRobotInterface;
+import edu.wpi.first.wpilibj.IterativeRobot;
 import org.contrived.unwpi.simulation.SimulationModel;
 import org.contrived.unwpi.simulation.SimulationServer;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * The main file that gets run during a simulation
@@ -13,12 +14,16 @@ public class SimulationRuntime {
     private static final int DISABLED_CYCLES = 10;
     private static final int AUTON_CYCLES = 500;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InvocationTargetException, InstantiationException {
         System.out.println("Simulation starting");
 
-        SimulationServer server = SimulationModel.connectToSimulationServer();
-        IterativeRobotInterface robot = new MyRobotCode();
+        // TODO: read the manifest file
+        IterativeRobot robot = (IterativeRobot) Class
+                .forName("ca.teamdave.letterman.LettermanMain")
+                .getConstructors()[0]
+                .newInstance(new Object[0]);
 
+        SimulationServer server = SimulationModel.connectToSimulationServer();
         server.reset();
 
         server.syncSensors();
